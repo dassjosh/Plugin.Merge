@@ -24,7 +24,7 @@ jobs:
         run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
         working-directory: src
       - name: Push
-        run: dotnet nuget push MJSU.Plugin.Merge.${VERSION}.nupkg --api-key ${NUGET_API_TOKEN}
+        run: dotnet nuget push MJSU.Plugin.Merge.${VERSION}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_API_TOKEN}
         working-directory: src
         env:
           NUGET_API_TOKEN: ${{ secrets.NUGET_API_TOKEN }}
