@@ -1,0 +1,30 @@
+name: pre-release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+-preview.[0-9]+.[0-9]+.[0-9]"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set VERSION variable from tag
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+      - name: Build
+        run: dotnet build --configuration Release /p:Version=${VERSION}
+        working-directory: src
+      - name: Pack
+        run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
+        working-directory: src
+      - name: Push
+        run: dotnet nuget push MJSU.Plugin.Merge.${VERSION}.nupkg --api-key ${NUGET_API_TOKEN}
+        working-directory: src
+        env:
+          NUGET_API_TOKEN: ${{ secrets.NUGET_API_TOKEN }}

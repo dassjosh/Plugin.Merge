@@ -42,15 +42,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\.github\workflows\ci.yml">
-        <Link>ci.yml</Link>
-      </Content>
-      <Content Include="..\..\LICENSE" Pack="true" PackagePath="">
-        <Link>LICENSE</Link>
-      </Content>
-      <Content Include="..\..\README.md">
-        <Link>README.md</Link>
-      </Content>
+      <Folder Include=".github\workflows" />
     </ItemGroup>
 
 </Project>
