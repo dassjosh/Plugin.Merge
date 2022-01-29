@@ -5,12 +5,12 @@
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>plugin.merge</ToolCommandName>
         <PackageOutputPath>./bin/nupkg</PackageOutputPath>
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <PackageVersion>1.0.0.0</PackageVersion>
+        <AssemblyVersion>$(Version)</AssemblyVersion>
+        <PackageVersion>$(Version)</PackageVersion>
         <LangVersion>10</LangVersion>
         <Authors>MJSU</Authors>
         <ImplicitUsings>enable</ImplicitUsings>
-        <FileVersion>1.0.0.0</FileVersion>
+        <FileVersion>$(Version)</FileVersion>
         <TargetFramework>net6.0</TargetFramework>
         <Title>Plugin Merge</Title>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
