@@ -45,4 +45,10 @@
       <Folder Include=".github\workflows" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="..\..\LICENSE" Pack="true" PackagePath="">
+        <Link>LICENSE</Link>
+      </Content>
+    </ItemGroup>
+
 </Project>
