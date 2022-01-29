@@ -22,6 +22,7 @@
         <PackageId>MJSU.Plugin.Merge</PackageId>
         <RepositoryType>git</RepositoryType>
         <PackageTags>Oxide uMod Plugin Merge Tool</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -53,6 +54,9 @@
       </Content>
       <Content Include="..\..\LICENSE" Pack="true" PackagePath="">
         <Link>LICENSE</Link>
+      </Content>
+      <Content Include="..\..\README.md" Pack="true" PackagePath="">
+        <Link>README.md</Link>
       </Content>
     </ItemGroup>
 
