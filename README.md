@@ -57,13 +57,22 @@ This will merge all the .cs files together and create a final file in the output
 You can also enable compilation to compile your plugin to check for any issues before loading it onto your server.
 To enable compilation add the `-c` argument while merging Ex: `plugin.merge -m -c -p ./merge.yaml`
 
+### File Settings
+You can control certain settings about imported .cs files by adding specific comments into the file before the class declaration  
+`//Define:FileOrder=100` - This will control which order the file is added into final output file. Default value is 100  
+
+`//Define:ExcludeFile` - This will prevent a file from being processed  
+
+`//Define:Framework` - This defines a file as a framework. Framework files are added at the very bottom in separate partial classes 
+(Note: This should not be added manually and is already added by the Plugin Merge Tool)  
+
 ## Configuration
 
 ### Creator Modes
-There are 3 types of merge options when using Plugin Merge.
-`Plugin` - will merge all files into a final Plugin to be used.
-`Framework` - Will output a framework file that can be copied into another plugin that isn't a merge framework plugin
-`MergeFramework` - Will output a framework file that can be used with a plugin that is a merge framework plugin
+There are 3 types of merge options when using Plugin Merge.  
+`Plugin` - will merge all files into a final Plugin to be used.  
+`Framework` - Will output a framework file that can be copied into another plugin that isn't a merge framework plugin  
+`MergeFramework` - Will output a framework file that can be used with a plugin that is a merge framework plugin  
 
 ### YAML Configuration File
 ```yaml
