@@ -29,8 +29,6 @@ public class MergeHandler
                 _logger.LogDebug("Output path doesn't exist. Creating output path: {Path}", path);
                 Directory.CreateDirectory(path);
             }
-        
-            _merge.IgnorePaths.Add(path);
         }
         
         FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles);
