@@ -6,8 +6,8 @@ namespace PluginMerge.Commands;
 [Verb("merge", true, HelpText = "Merges multiple .cs files into a single plugin/framework file.")]
 public class MergeCommand : BaseCommand
 {
-    [Option('p', "path", Required = false, HelpText = "Path to the merge.json configuration file", Default = "./merge.yaml")]
-    public string ConfigPath { get; set; } = "./merge.yaml";
+    [Option('p', "path", Required = false, HelpText = "Path to the merge.json configuration file", Default = "./merge.yml")]
+    public string ConfigPath { get; set; } = "./merge.yml";
     
     [Option('m', "merge", Group = "Mode", HelpText = "Enables merge mode to merge files into a single plugin/framework file", Default = false)]
     public bool Merge { get; set; }
