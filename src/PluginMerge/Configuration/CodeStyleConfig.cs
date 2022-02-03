@@ -26,7 +26,7 @@ public class CodeStyleConfig
     [YamlMember(Alias = "Write The Relative File Path In Region", Description = "Adds the code file path in a region")]
     public bool WriteFileRegion { get; set; } = true;
     
-    [JsonPropertyName("Keep Comments")]
+    [JsonPropertyName("Keep Comments Comments")]
     [YamlMember(Alias = "Keep Code Comments", Description = "Adds the code file path in a region")]
     public bool KeepComments { get; set; } = true;
 

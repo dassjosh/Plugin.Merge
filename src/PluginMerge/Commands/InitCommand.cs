@@ -9,8 +9,8 @@ public class InitCommand : BaseCommand
     [Option('p', "path", Required = false, HelpText = "Path to create the merge.json configuration file in", Default = "./")]
     public string FilePath { get; set; } = "./";
 
-    [Option('f', "filename", Required = false, HelpText = "Name of the outputted configuration file", Default = "merge.yaml")]
-    public string FileName { get; set; } = "merge.yaml";
+    [Option('f', "filename", Required = false, HelpText = "Name of the outputted configuration file", Default = "merge.yml")]
+    public string FileName { get; set; } = "merge.yml";
 
     public override async Task Execute()
     {
