@@ -13,7 +13,7 @@ public class FileScanner
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(filter);
-        _paths = paths;
+        _paths = paths.Select(p => p.ToFullPath()).ToList();
         _filter = filter;
         _ignorePaths = ignorePaths?.Select(p => p.ToFullPath()).ToList();
         _ignoreFiles = ignoreFiles?.Select(p => p.ToFullPath()).ToList();
@@ -22,7 +22,7 @@ public class FileScanner
 
     public List<ScannedFile> ScanFiles()
     {
-        foreach (string path in _paths.Select(p => p.ToFullPath()))
+        foreach (string path in _paths)
         {
             ScanPath(path, path);
         }
