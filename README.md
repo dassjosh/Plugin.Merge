@@ -6,6 +6,14 @@
 
 Plugin Merge is a .net 6 CLI tool that allows merging multiple .cs files into a single Oxide / uMod plugin file.
 
+## Examples
+
+### Plugins
+[Discord Sign Logger](https://github.com/dassjosh/Rust.DiscordSignLogger)
+
+### Frameworks
+[Rust UI Framework](https://github.com/dassjosh/Rust.UIFramework)
+
 ## Installation
 `dotnet tool install --global MJSU.Plugin.Merge` from the shell/command line.
 
@@ -17,7 +25,7 @@ Create config in specified directory:
 `plugin.merge init -f merge.json -p C:\Users\USERNAME\Source\Repos\MyFirstMergePlugin`
 
 `-p`, `--path`  (Default: ./) Path to create the merge.json configuration file in  
-`-f`, `--filename` (Default: merge.yaml) Name of the outputted configuration file  
+`-f`, `--filename` (Default: merge.yml) Name of the outputted configuration file  
 `-d`, `--debug` Enable debug log output  
 `--help` Display this help screen.  
 `--version` Display version information.
@@ -33,7 +41,7 @@ Merge Additional Output Paths:
 Compile Only:  
 `plugin.merge -c -p ./merge.json`
 
-`-p`, `--path`(Default: ./merge.yaml) Path to the merge.json configuration file  
+`-p`, `--path`(Default: ./merge.yml) Path to the merge.json configuration file  
 `-m`, `--merge` (Group: Mode) (Default: false) Enables merge mode to merge files into a single plugin/framework file  
 `-c`, `--compile` (Group: Mode) (Default: false) Enables compile mode. Will attempt to compile merged file and display
 any errors if it fails.  
@@ -45,17 +53,17 @@ any errors if it fails.
 ## Getting Started
 
 To get started using plugin merge open a command prompt / terminal and type `plugin.merge init`. 
-This will created the default configuration file named merge.yaml in the directory that is currently open.
+This will created the default configuration file named merge.yml in the directory that is currently open.
 Plugin Merge also supports JSON. You can use `plugin.merge init -f merge.json`
 Place your config file a directory near your plugin .cs files.
 Update the config paths to point to the input and output paths you would like to use.
 The configuration supports relative pathing and all paths use the configuration files directory as it's staring point.
 
 Once your configuration file is setup it's time to merge the files together.
-You can run the merge by typing `plugin.merge -m -p ./merge.yaml`. 
+You can run the merge by typing `plugin.merge -m -p ./merge.yml`. 
 This will merge all the .cs files together and create a final file in the output paths specified.
 You can also enable compilation to compile your plugin to check for any issues before loading it onto your server.
-To enable compilation add the `-c` argument while merging Ex: `plugin.merge -m -c -p ./merge.yaml`
+To enable compilation add the `-c` argument while merging Ex: `plugin.merge -m -c -p ./merge.yml`
 
 ### File Settings
 You can control certain settings about imported .cs files by adding specific comments into the file before the class declaration  
