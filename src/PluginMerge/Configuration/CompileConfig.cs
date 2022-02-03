@@ -6,7 +6,7 @@ namespace PluginMerge.Configuration;
 
 public class CompileConfig
 {
-    [YamlMember(Alias = "Ignore Paths")]
+    [YamlMember(Alias = "Assembly Paths")]
     [JsonPropertyName("Assembly Paths")]
     public List<string> AssemblyPaths { get; set; }
     
