@@ -98,7 +98,7 @@ public class FileHandler
             SyntaxKind kind = trivia.Kind();
             if (kind == SyntaxKind.SingleLineCommentTrivia)
             {
-                if (trivia.Token.Parent is not (NamespaceDeclarationSyntax or ClassDeclarationSyntax))
+                if (trivia.Token.Parent is not (NamespaceDeclarationSyntax or ClassDeclarationSyntax or AttributeListSyntax))
                 {
                     continue;
                 }
