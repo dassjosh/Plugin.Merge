@@ -21,7 +21,7 @@ public class MergeHandler
         Stopwatch sw = Stopwatch.StartNew();
         _logger.LogInformation("Starting Plugin Merge Mode: {Mode}", _merge.CreatorMode);
         _logger.LogInformation("Input Paths: {Input}", string.Join(", ", _merge.InputPaths.Select(p => p.ToFullPath())));
-
+        
         foreach (string path in _merge.OutputPaths)
         {
             if (!Directory.Exists(path))
@@ -31,7 +31,9 @@ public class MergeHandler
             }
         }
         
-        FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles);
+        List<string> finalFiles = _merge.FinalFiles.ToList();
+        
+        FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles.Concat(finalFiles));
         foreach (ScannedFile file in scanner.ScanFiles())
         {
             _files.Add(new FileHandler(file));
@@ -46,8 +48,7 @@ public class MergeHandler
         {
             return;
         }
-
-        List<string> finalFiles = _merge.FinalFiles.ToList();
+        
         foreach (string file in finalFiles)
         {
             await File.WriteAllTextAsync(file, creator.ToCode());
