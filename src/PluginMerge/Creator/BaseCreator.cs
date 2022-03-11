@@ -166,7 +166,7 @@ public class BaseCreator
     /// </summary>
     protected void WriteNamespace()
     {
-        Writer.WriteComment($"{_settings.Merge.PluginName} created with PluginMerge v({typeof(Program).Assembly.GetName().Version}) by MJSU");
+        Writer.WriteComment($"{_settings.Merge.PluginName} created with PluginMerge v({typeof(Program).Assembly.GetName().Version}) by MJSU @ https://github.com/dassjosh/Plugin.Merge");
         Writer.WriteNamespace(_settings.PlatformSettings.Namespace);
         Writer.WriteLine();
         Writer.WriteStartBracket();
