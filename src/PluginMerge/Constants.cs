@@ -20,7 +20,12 @@ public static class Constants
         /// <summary>
         /// Files with this comment will be ignored
         /// </summary>
-        public const string ExcludeFile = "//Define:ExcludeFile";
+        public const string ExcludeFile = "//Define:ExcludeFile";        
+        
+        /// <summary>
+        /// Files with this comment will be ignored
+        /// </summary>
+        public const string ExtensionFile = "//Define:ExtensionMethods";
             
         /// <summary>
         /// Files with this comment will be ordered based on the tag
@@ -36,12 +41,12 @@ public static class Constants
         /// <summary>
         /// Matches the Info tag
         /// </summary>
-        public static readonly Regex Info = new(@"\s*\[Info\(\s*""(?<Title>.*)""\s*,\s*""(?<Author>.*)""\s*,\s*""(?<Version>.*)""\s*\)\]$", RegexOptions.Compiled);
+        public static readonly Regex Info = new(@"\s*//\[Info\(\s*""(?<Title>.*)""\s*,\s*""(?<Author>.*)""\s*,\s*""(?<Version>.*)""\s*\)\]$", RegexOptions.Compiled);
             
         /// <summary>
         /// Matches the description tag
         /// </summary>
-        public static readonly Regex Description = new(@"\s*\[Description\(\s*""(?<Description>.*)""\s*\)\]$", RegexOptions.Compiled);
+        public static readonly Regex Description = new(@"\s*//\[Description\(\s*""(?<Description>.*)""\s*\)\]$", RegexOptions.Compiled);
     }
 
     public static class CloseCodes
@@ -53,5 +58,7 @@ public static class Constants
         public const int MergeConfigError = 2002;
         public const int MergeFilesError = 2003;
         public const int CompileFilesError = 2004;
+        public const int RenameFileNotFound = 3001;
+        public const int RenameFileContainsInvalidSource = 3002;
     }
 }
