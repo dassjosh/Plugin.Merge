@@ -4,7 +4,7 @@ using CommandLine.Text;
 namespace PluginMerge.Commands;
 
 [Verb("merge", true, HelpText = "Merges multiple .cs files into a single plugin/framework file.")]
-public class MergeCommand : BaseCommand
+public class MergeCommand : BaseCommand<MergeCommand>
 {
     [Option('p', "path", Required = false, HelpText = "Path to the merge.json configuration file", Default = "./merge.yml")]
     public string ConfigPath { get; set; } = "./merge.yml";
@@ -17,22 +17,59 @@ public class MergeCommand : BaseCommand
 
     [Option('o', "output", HelpText = "Additional output paths for the generated code file")]
     public IEnumerable<string> OutputPaths { get; set; }
-
+    
     public override async Task Execute()
     {
-        await base.Execute();
+        await base.Execute().ConfigureAwait(false);
+
+        PluginMergeConfig config = await LoadConfig().ConfigureAwait(false);
+        if (config is null)
+        {
+            return;
+        }
         
-        PluginMergeConfig config;
+        bool success = await RunMerge(config).ConfigureAwait(false);
+        if (!success)
+        {
+            return;
+        }
+
+        await RunCompile(config).ConfigureAwait(false);
+    }
+
+    private async Task<bool> RunMerge(PluginMergeConfig config)
+    {
+        if (!Merge)
+        {
+            return true;
+        }
         
+        try
+        {
+            MergeHandler handler = new(config);
+            await handler.Run().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogCritical(ex, "An error occured merging files");
+            CloseCode = Constants.CloseCodes.MergeFilesError;
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<PluginMergeConfig> LoadConfig()
+    {
         try
         {
             string configFile = ConfigPath.ToFullPath();
             Logger.LogInformation("Loading Plugin Merge Config At {File}", configFile);
-            config = await PluginMergeConfigHandler.Instance.Load(configFile);
-            if (config == null)
+            PluginMergeConfig config = await PluginMergeConfigHandler.Instance.Load(configFile).ConfigureAwait(false);
+            if (config is null)
             {
                 CloseCode = Constants.CloseCodes.MergeConfigNotFoundError;
-                return;
+                return null;
             }
 
             string path = Path.GetDirectoryName(configFile);
@@ -41,48 +78,40 @@ public class MergeCommand : BaseCommand
                 Directory.SetCurrentDirectory(path);
             }
 
-            if (OutputPaths != null)
+            if (OutputPaths is not null)
             {
                 config.Merge.OutputPaths.AddRange(OutputPaths);
             }
+
+            return config;
         }
         catch (Exception ex)
         {
             Logger.LogCritical(ex, "An error occured loading the config file");
             CloseCode = Constants.CloseCodes.MergeConfigError;
+            return null;
+        }
+    }
+
+    private async Task RunCompile(PluginMergeConfig config)
+    {
+        if (!Compile)
+        {
             return;
         }
 
-        if (Merge)
+        try
         {
-            try
-            {
-                MergeHandler handler = new(config);
-                await handler.Run();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogCritical(ex, "An error occured merging files");
-                CloseCode = Constants.CloseCodes.MergeFilesError;
-                return;
-            }
+            CompileHandler compile = new(config.Merge.FinalFiles.FirstOrDefault(), config);
+            await compile.Run().ConfigureAwait(false);
         }
-
-        if (Compile)
+        catch (Exception ex)
         {
-            try
-            {
-                CompileHandler compile = new(config.Merge.FinalFiles.FirstOrDefault(), config);
-                await compile.Run();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogCritical(ex, "An error compiling merged file");
-                CloseCode = Constants.CloseCodes.CompileFilesError;
-            }
+            Logger.LogCritical(ex, "An error compiling merged file");
+            CloseCode = Constants.CloseCodes.CompileFilesError;
         }
     }
-    
+
     [Usage(ApplicationAlias = "plugin.merge")]
     public static IEnumerable<Example> Examples => new List<Example>
     {
