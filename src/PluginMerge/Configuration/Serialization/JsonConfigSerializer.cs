@@ -7,10 +7,7 @@ public class JsonConfigSerializer : IConfigSerializer
     public static readonly JsonConfigSerializer Instance = new();
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
 
-    private JsonConfigSerializer()
-    {
-        
-    }
+    private JsonConfigSerializer() { }
     
     public string Serialize<T>(T data)
     {

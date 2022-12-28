@@ -19,11 +19,11 @@ public class PluginMergeConfig
 
     [JsonIgnore]
     [YamlIgnore]
-    public PlatformSettings PlatformSettings;
+    public PlatformSettings PlatformSettings { get; set; }
 
     public void Initialize()
     {
-        PlatformSettings = PlatformSettings.GetPlatformSettings(Platform);
+        PlatformSettings = string.IsNullOrEmpty(Merge.NamespaceOverride) ? PlatformSettings.GetPlatformSettings(Platform) : PlatformSettings.GetCustomPlatformSettings(Platform, Merge.NamespaceOverride);
 
         Merge ??= new MergeConfig();
         Merge.Initialize();

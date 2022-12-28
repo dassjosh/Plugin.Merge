@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.VisualBasic;
 using YamlDotNet.Serialization;
 
 namespace PluginMerge.Configuration;
@@ -13,6 +14,10 @@ public class MergeConfig
     [JsonPropertyName("Creator Mode")]
     [YamlMember(Alias = "Creator Mode", Description = "Which type of file to output (Plugin, Framework, or MergeFramework)")]
     public CreatorMode CreatorMode { get; set; }
+    
+    [JsonPropertyName("Namespace Override")]
+    [YamlMember(Alias = "Namespace Override", Description = "Overrides the default namespace")]
+    public string NamespaceOverride { get; set; }
         
     [JsonPropertyName("Plugin Input Paths")]
     [YamlMember(Alias = "Plugin Input Paths", Description = "Paths to use when reading in source code relative to the merge config")]
@@ -50,9 +55,12 @@ public class MergeConfig
     [YamlIgnore]
     public IEnumerable<string> FinalFiles => OutputPaths.Select(p => Path.Combine(p, $"{PluginName}.cs").ToFullPath());
 
+    private bool ShouldSerializeNamespaceOverride() => CreatorMode == CreatorMode.MergeFramework;
+
     public void Initialize()
     {
         PluginName ??= "MyPluginName";
+        NamespaceOverride = string.Empty;
         InputPaths ??= new List<string> { "./" };
         OutputPaths ??= new List<string> {"./build"};
         Defines ??= new List<string> { "DEBUG" };

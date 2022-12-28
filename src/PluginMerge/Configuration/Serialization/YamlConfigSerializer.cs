@@ -8,10 +8,7 @@ public class YamlConfigSerializer : IConfigSerializer
     private static readonly ISerializer Serializer = new SerializerBuilder().Build();
     private static readonly IDeserializer Deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
 
-    private YamlConfigSerializer()
-    {
-        
-    }
+    private YamlConfigSerializer() { }
     
     public string Serialize<T>(T data)
     {

@@ -45,4 +45,14 @@ public class PlatformSettings
             _ => null
         };
     }
+
+    public static PlatformSettings GetCustomPlatformSettings(Platform platform, string @namespace)
+    {
+        return platform switch
+        {
+            Platform.Oxide => new PlatformSettings(@namespace, Oxide.Lang),
+            Platform.uMod => new PlatformSettings(@namespace, uMod.Lang),
+            _ => null
+        };
+    }
 }
