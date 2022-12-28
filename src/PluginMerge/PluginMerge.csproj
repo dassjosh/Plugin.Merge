@@ -11,7 +11,6 @@
         <Authors>MJSU</Authors>
         <ImplicitUsings>enable</ImplicitUsings>
         <FileVersion>$(Version)</FileVersion>
-        <TargetFramework>net6.0</TargetFramework>
         <Title>Plugin Merge</Title>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Plugin Merge is a .net 6 CLI tool that allows merging multiple .cs files into a single Oxide / uMod plugin file.</Description>
@@ -23,6 +22,13 @@
         <RepositoryType>git</RepositoryType>
         <PackageTags>Oxide uMod Plugin Merge Tool</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <AnalysisMode>Default</AnalysisMode>
+        <WarningLevel>7</WarningLevel>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>disable</Nullable>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -34,12 +40,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommandLineParser" Version="2.8.0" />
-      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
+      <PackageReference Include="CommandLineParser" Version="2.9.1" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="6.0.0" />
-      <PackageReference Include="YamlDotNet" Version="11.2.1" />
+      <PackageReference Include="YamlDotNet" Version="12.3.1" />
     </ItemGroup>
 
     <ItemGroup>
