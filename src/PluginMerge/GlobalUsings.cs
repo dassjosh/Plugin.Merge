@@ -11,3 +11,4 @@ global using PluginMerge.Extensions;
 global using PluginMerge.Logging;
 global using PluginMerge.Merge;
 global using PluginMerge.Scanner;
+global using PluginMerge.Writer;

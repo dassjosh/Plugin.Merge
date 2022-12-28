@@ -2,7 +2,6 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using PluginMerge.Scanner;
 
 namespace PluginMerge.Merge;
 
@@ -19,7 +18,7 @@ public class FileHandler
     /// <summary>
     /// Type flags for the code inside the file
     /// </summary>
-    public FileSettings Type { get; private set; }
+    private FileSettings Settings { get; set; }
         
     /// <summary>
     /// Data related to a plugin
@@ -49,7 +48,7 @@ public class FileHandler
     /// <summary>
     /// The order the file requested to be in
     /// </summary>
-    public int Order { get; private set; } = 100;
+    public int Order { get; private set; } = 1000;
     
     /// <summary>
     /// The name of the region for the file
@@ -57,7 +56,7 @@ public class FileHandler
     public string RegionName { get; }
 
     private readonly ILogger _logger;
-    private string _text;
+    private string _sourceCode;
 
     /// <summary>
     /// Constructor for FileHandler.
@@ -66,7 +65,7 @@ public class FileHandler
     /// <param name="file"></param>
     public FileHandler(ScannedFile file)
     {
-        _logger = this.GetLogger();
+        _logger = LogBuilder.GetLogger<FileHandler>();
         FilePath = file.FileName;
         RegionName = FilePath.Replace(file.InputPath, "").TrimStart(Path.DirectorySeparatorChar);
     }
@@ -75,18 +74,25 @@ public class FileHandler
     /// Processes the code inside the file.
     /// </summary>
     /// <param name="settings">How the file should be read.</param>
-    public async Task ProcessFile(PlatformSettings settings)
+    /// <param name="options">Parsing options</param>
+    public async Task ProcessFile(PlatformSettings settings, CSharpParseOptions options)
     {
         _logger.LogDebug("Start processing file at path: {Path}", FilePath);
-        _text = await File.ReadAllTextAsync(FilePath);
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(_text, new CSharpParseOptions(settings.Lang));
+        _sourceCode = await File.ReadAllTextAsync(FilePath).ConfigureAwait(false);
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(_sourceCode, options);
 
-        if (await tree.GetRootAsync() is not CompilationUnitSyntax root)
+        if (await tree.GetRootAsync().ConfigureAwait(false) is not CompilationUnitSyntax root)
         {
             return;
         }
 
-        await Task.WhenAll(ProcessComments(root), ProcessUsings(settings, root), ProcessNamespace(root));
+        await ProcessComments(root).ConfigureAwait(false);
+        if (IsExcludedFile())
+        {
+            return;
+        }
+
+        await Task.WhenAll(ProcessUsings(settings, root), ProcessNamespace(root)).ConfigureAwait(false);
     }
 
     private Task ProcessComments(CompilationUnitSyntax root)
@@ -95,38 +101,37 @@ public class FileHandler
         
         foreach (SyntaxTrivia trivia in root.DescendantTrivia())
         {
-            SyntaxKind kind = trivia.Kind();
-            if (kind == SyntaxKind.SingleLineCommentTrivia)
+            if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
             {
                 if (trivia.Token.Parent is not (NamespaceDeclarationSyntax or ClassDeclarationSyntax or AttributeListSyntax))
                 {
                     continue;
                 }
-                
-                string commentValue = trivia.ToString();
-                switch (commentValue)
-                {
-                    case Constants.Definitions.Framework:
-                        Type |= FileSettings.Framework;
-                        break;
-                    case Constants.Definitions.ExcludeFile:
-                        Type |= FileSettings.Exclude;
-                        break;
-                }
 
-                if (commentValue.Contains(Constants.Definitions.OrderFile))
+                string comment = trivia.ToString();
+                if (comment == Constants.Definitions.Framework)
                 {
-                    if (int.TryParse(commentValue.Replace(Constants.Definitions.OrderFile, string.Empty), out int order))
+                    Settings |= FileSettings.Framework;
+                } 
+                else if (comment == Constants.Definitions.ExcludeFile)
+                {
+                    Settings |= FileSettings.Exclude;
+                    return Task.CompletedTask;
+                } 
+                else if (comment.Contains(Constants.Definitions.OrderFile))
+                {
+                    if (int.TryParse(comment.Replace(Constants.Definitions.OrderFile, string.Empty), out int order))
                     {
                         Order = order;
                     }
                 }
 
-                ProcessFrameworkComments(commentValue);
+                ProcessFrameworkComments(comment);
             }
-            else if (kind == SyntaxKind.DefineDirectiveTrivia)
+            else if (trivia.IsKind(SyntaxKind.DefineDirectiveTrivia))
             {
-                DefineDirectives.Add(trivia.ToString().Replace("#define ", string.Empty));
+                const string define = "#define ";
+                DefineDirectives.Add(trivia.ToString().Substring(define.Length));
             }
         }
 
@@ -135,18 +140,23 @@ public class FileHandler
 
     private void ProcessFrameworkComments(string comment)
     {
-        Match match = Constants.Regexs.Info.Match(comment);
-        if (match.Success)
+        if (comment.StartsWith("//[Info"))
         {
-            PluginData ??= new PluginData();
-            PluginData.SetInfo(match.Groups["Title"].Value, match.Groups["Author"].Value, match.Groups["Version"].Value);
+            Match match = Constants.Regexs.Info.Match(comment);
+            if (match.Success)
+            {
+                PluginData ??= new PluginData();
+                PluginData.SetInfo(match.Groups["Title"].Value, match.Groups["Author"].Value, match.Groups["Version"].Value);
+            }
         }
-
-        match = Constants.Regexs.Description.Match(comment);
-        if (match.Success)
+        else if (comment.StartsWith("//[Description("))
         {
-            PluginData ??= new PluginData();
-            PluginData.SetDescription(match.Groups["Description"].Value);
+            Match match = Constants.Regexs.Description.Match(comment);
+            if (match.Success)
+            {
+                PluginData ??= new PluginData();
+                PluginData.SetDescription(match.Groups["Description"].Value);
+            }
         }
     }
 
@@ -158,7 +168,7 @@ public class FileHandler
             string name = @using.Name.ToString();
             if (!name.Equals(settings.Namespace))
             {
-                if (@using.Alias == null)
+                if (@using.Alias is null)
                 {
                     UsingStatements.Add(name);
                 }
@@ -179,17 +189,30 @@ public class FileHandler
         {
             foreach (BaseTypeDeclarationSyntax node in @namespace.ChildNodes().OfType<BaseTypeDeclarationSyntax>())
             {
-                FileType data = new(_text, node, @namespace.Name.ToString());
+                FileSettings typeSettings = Settings;
+                foreach (SyntaxTrivia trivia in node.DescendantTrivia())
+                {
+                    if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                    {
+                        if (trivia.ToString() == Constants.Definitions.ExtensionFile)
+                        {
+                            typeSettings |= FileSettings.Extension;
+                        }
+                    }
+                }
+                
+                FileType data = new(_sourceCode, node, @namespace.Name.ToString(), typeSettings);
                 FileTypes.Add(data);
                 
-                if (node.BaseList != null && node.BaseList.Types.Any(type => type.Type.ToString().EndsWith("Plugin")))
+                if (!IsFrameworkFile() && node.BaseList is not null && node.BaseList.Types.Any(type => type.Type.ToString().EndsWith("Plugin")))
                 {
-                    Type |= FileSettings.Plugin;
+                    Settings |= FileSettings.Plugin;
                     PluginData = new PluginData();
                     PluginData.SetPluginType(data.TypeNamespace, data.TypeName);
+                    PluginData.SetBaseTypes(node.BaseList.Types);
                 }
 
-                if (PluginData != null)
+                if (PluginData is not null)
                 {
                     ProcessAttributes(node);
                 }
@@ -205,11 +228,11 @@ public class FileHandler
         {
             foreach (AttributeSyntax attribute in list.Attributes)
             {
-                if (attribute.ArgumentList == null)
+                if (attribute.ArgumentList is null)
                 {
                     continue;
                 }
-                
+
                 string name = attribute.Name.ToString();
                 if (name == "Info" && attribute.ArgumentList.Arguments.Count >= 3)
                 {
@@ -223,5 +246,20 @@ public class FileHandler
                 }
             }
         }
+    }
+
+    public bool IsPluginFile()
+    {
+        return Settings.HasFlag(FileSettings.Plugin);
+    }
+
+    public bool IsFrameworkFile()
+    {
+        return Settings.HasFlag(FileSettings.Framework);
+    }
+    
+    public bool IsExcludedFile()
+    {
+        return Settings.HasFlag(FileSettings.Exclude);
     }
 }

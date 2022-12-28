@@ -1,6 +1,4 @@
-
-
-namespace PluginMerge.Creator;
+namespace PluginMerge.Writer;
 
 /// <summary>
 /// Represents a code write
@@ -10,22 +8,21 @@ public class CodeWriter
 {
     private int _indent;
     private readonly StringBuilder _writer;
-    private readonly FileHandler _plugin;
+    private readonly PluginData _pluginData;
     private readonly CodeStyleConfig _style;
     private readonly string _pluginNameReplacement;
 
     /// <summary>
     /// Constructor for the code writer
     /// </summary>
-    /// <param name="plugin"></param>
-    /// <param name="style"></param>
-    /// <param name="pluginNameReplacement"></param>
-    public CodeWriter(FileHandler plugin, CodeStyleConfig style, string pluginNameReplacement)
+    /// <param name="pluginData"></param>
+    /// <param name="config"></param>
+    public CodeWriter(PluginData pluginData, MergeConfig config)
     {
         _writer = new StringBuilder();
-        _plugin = plugin;
-        _style = style;
-        _pluginNameReplacement = $"{pluginNameReplacement}.";
+        _pluginData = pluginData;
+        _style = config.CodeStyle;
+        _pluginNameReplacement = $"{config.PluginName}.";
     }
     
     /// <summary>
@@ -62,15 +59,35 @@ public class CodeWriter
     /// <param name="usings"></param>
     public void WriteUsings(IEnumerable<string> usings)
     {
+        bool didWrite = false;
         foreach (string @using in usings.OrderBy(u => u))
         {
-            _writer.Append("using ");
-            _writer.Append(@using);
-            _writer.Append(';');
-            _writer.AppendLine();
+            didWrite = true;
+            WriteUsing(@using);
         }
 
-        WriteLine();
+        if (didWrite)
+        {
+            WriteLine();
+        }
+    }
+
+    public void WriteUsing(string @using)
+    {
+        _writer.Append("using ");
+        _writer.Append(@using);
+        _writer.Append(';');
+        _writer.AppendLine();
+    }
+    
+    public void WriteUsingAlias(string type, string typeNamespace)
+    {
+        _writer.Append("using ");
+        _writer.Append(type);
+        _writer.Append(" = ");
+        _writer.Append(typeNamespace);
+        _writer.Append(';');
+        _writer.AppendLine();
     }
 
     /// <summary>
@@ -87,9 +104,8 @@ public class CodeWriter
     /// Writes the start of the class to the code
     /// </summary>
     /// <param name="name"></param>
-    /// <param name="parentClass"></param>
     /// <param name="isPartial"></param>
-    public void WriteStartClass(string name, string parentClass = null, bool isPartial = false)
+    public void WriteStartClass(string name, List<string> baseTypes, bool isPartial = false)
     {
         WriteIndent();
         _writer.Append("public ");
@@ -100,10 +116,11 @@ public class CodeWriter
 
         _writer.Append("class ");
         _writer.Append(name);
-        if (!string.IsNullOrEmpty(parentClass))
+
+        if (baseTypes != null && baseTypes.Count != 0)
         {
             _writer.Append(" : ");
-            _writer.Append(parentClass);
+            _writer.Append(string.Join(", ", baseTypes));
         }
 
         WriteLine();
@@ -121,12 +138,19 @@ public class CodeWriter
         _writer.AppendLine();
     }
 
+    public void WriteDefinition(string definition)
+    {
+        WriteIndent();
+        _writer.Append(definition);
+        WriteLine();
+    }
+
     /// <summary>
     /// Writes the framework info to the code if is framework
     /// </summary>
     public void WriteFramework()
     {
-        WriteCode(Constants.Definitions.Framework);
+        WriteDefinition(Constants.Definitions.Framework);
     }
 
     /// <summary>
@@ -135,9 +159,9 @@ public class CodeWriter
     /// <param name="comment"></param>
     public void WriteInfoAttribute(bool comment)
     {
-        string title = _plugin?.PluginData?.Title ?? string.Empty;
-        string author = _plugin?.PluginData?.Author ?? string.Empty;
-        string version = _plugin?.PluginData?.Version ?? string.Empty;
+        string title = _pluginData.Title;
+        string author = _pluginData.Author;
+        string version = _pluginData.Version;
             
         WriteIndent();
         if (comment)
@@ -155,7 +179,7 @@ public class CodeWriter
     /// <param name="comment"></param>
     public void WriteDescriptionAttribute(bool comment)
     {
-        string description = _plugin?.PluginData?.Description ?? string.Empty;
+        string description = _pluginData.Description;
             
         WriteIndent();
             
@@ -280,11 +304,10 @@ public class CodeWriter
     /// </summary>
     public void WriteIndent()
     {
-        if (_indent <= 0)
+        if (_indent > 0)
         {
-            return;
+            _writer.Append(_style.IndentCharacter, _indent * _style.IndentAmount);
         }
-        _writer.Append(new string(_style.IndentCharacter, _indent * _style.IndentAmount));
     }
         
     /// <summary>

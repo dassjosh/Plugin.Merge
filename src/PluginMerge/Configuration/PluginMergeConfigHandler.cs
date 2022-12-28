@@ -9,12 +9,12 @@ public class PluginMergeConfigHandler
 
     private PluginMergeConfigHandler()
     {
-        _logger = this.GetLogger();
+        _logger = LogBuilder.GetLogger<PluginMergeConfigHandler>();
     }
     
     public async Task Create(string file)
     {
-        if (file == null) throw new ArgumentNullException(nameof(file));
+        if (file is null) throw new ArgumentNullException(nameof(file));
         
         if (File.Exists(file))
         {
@@ -25,14 +25,14 @@ public class PluginMergeConfigHandler
         PluginMergeConfig config = new();
         config.Initialize();
         
-        await WriteConfig(file, config);
+        await WriteConfig(file, config).ConfigureAwait(false);
 
         _logger.LogInformation("Successfully created merge config at path: {File}", file);
     }
     
     public async Task<PluginMergeConfig> Load(string file)
     {
-        if (file == null) throw new ArgumentNullException(nameof(file));
+        if (file is null) throw new ArgumentNullException(nameof(file));
         
         if (!File.Exists(file))
         {
@@ -40,9 +40,9 @@ public class PluginMergeConfigHandler
             return null;
         }
 
-        PluginMergeConfig config = await ReadConfig(file);
+        PluginMergeConfig config = await ReadConfig(file).ConfigureAwait(false);
         config.Initialize();
-        await WriteConfig(file, config);
+        await WriteConfig(file, config).ConfigureAwait(false);
 
         return config;
     }
@@ -50,13 +50,13 @@ public class PluginMergeConfigHandler
     private async Task WriteConfig(string file, PluginMergeConfig config)
     {
         IConfigSerializer serializer = GetSerializerForFile(file);
-        await File.WriteAllTextAsync(file, serializer.Serialize(config));
+        await File.WriteAllTextAsync(file, serializer.Serialize(config)).ConfigureAwait(false);
     }
     
     private async Task<PluginMergeConfig> ReadConfig(string file)
     {
         IConfigSerializer serializer = GetSerializerForFile(file);
-        string text = await File.ReadAllTextAsync(file);
+        string text = await File.ReadAllTextAsync(file).ConfigureAwait(false);
         return serializer.Deserialize<PluginMergeConfig>(text);
     }
 

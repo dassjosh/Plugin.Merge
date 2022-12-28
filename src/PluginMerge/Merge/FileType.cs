@@ -8,11 +8,9 @@ namespace PluginMerge.Merge;
 public class FileType
 {
     public readonly string TypeName;
-
     public readonly string TypeNamespace;
+    private FileSettings _settings;
 
-    public bool IsPluginType;
-    
     private readonly string _sourceCode;
     private readonly BaseTypeDeclarationSyntax _type;
 
@@ -22,12 +20,14 @@ public class FileType
     /// <param name="source"></param>
     /// <param name="type"></param>
     /// <param name="typeNamespace"></param>
-    public FileType(string source, BaseTypeDeclarationSyntax type, string typeNamespace)
+    /// <param name="settings">Settings for the type</param>
+    public FileType(string source, BaseTypeDeclarationSyntax type, string typeNamespace, FileSettings settings)
     {
         _sourceCode = source;
         _type = type;
         TypeName = type.Identifier.ToString();
         TypeNamespace = typeNamespace;
+        _settings = settings;
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class FileType
         int endIndex = _type.Span.End;
         
         //If plugin type we want code between the open and close braces
-        if (IsPluginType)
+        if (IsPlugin())
         {
             startIndex = _type.OpenBraceToken.SpanStart + 1;
             endIndex = _type.CloseBraceToken.SpanStart - 1;
@@ -64,5 +64,30 @@ public class FileType
     public bool HasCode()
     {
         return !GetCode().IsEmpty;
+    }
+
+    public bool ContainsType(string type)
+    {
+        return _sourceCode.AsSpan().Slice(_type.SpanStart, _type.Span.Length).Contains(type.AsSpan(), StringComparison.CurrentCulture);
+    }
+
+    public void AddSettings(FileSettings settings)
+    {
+        _settings |= settings;
+    }
+
+    public bool IsPlugin()
+    {
+        return _settings.HasFlag(FileSettings.Plugin);
+    }
+    
+    public bool IsFramework()
+    {
+        return _settings.HasFlag(FileSettings.Framework);
+    }
+    
+    public bool IsExtensionMethods()
+    {
+        return _settings.HasFlag(FileSettings.Extension);
     }
 }

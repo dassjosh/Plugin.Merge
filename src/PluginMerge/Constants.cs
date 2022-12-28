@@ -23,7 +23,7 @@ public static class Constants
         public const string ExcludeFile = "//Define:ExcludeFile";        
         
         /// <summary>
-        /// Files with this comment will be ignored
+        /// Files with this comment will be added as extension methods
         /// </summary>
         public const string ExtensionFile = "//Define:ExtensionMethods";
             

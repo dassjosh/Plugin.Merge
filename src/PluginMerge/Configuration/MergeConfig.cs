@@ -8,11 +8,7 @@ public class MergeConfig
     [JsonPropertyName("Plugin Name")]
     [YamlMember(Alias = "Plugin Name", Description = "Outputted plugin name")]
     public string PluginName { get; set; }
-        
-    [JsonPropertyName("Plugin Base Class")]
-    [YamlMember(Alias = "Plugin Base Class", Description = "Outputted plugin base class")]
-    public string BaseClass { get; set; }
-    
+
     [JsonConverter(typeof(JsonStringEnumConverter))]
     [JsonPropertyName("Creator Mode")]
     [YamlMember(Alias = "Creator Mode", Description = "Which type of file to output (Plugin, Framework, or MergeFramework)")]
@@ -57,7 +53,6 @@ public class MergeConfig
     public void Initialize()
     {
         PluginName ??= "MyPluginName";
-        BaseClass ??= "CovalencePlugin";
         InputPaths ??= new List<string> { "./" };
         OutputPaths ??= new List<string> {"./build"};
         Defines ??= new List<string> { "DEBUG" };
