@@ -13,5 +13,6 @@ public enum Platform
     /// <summary>
     /// uMod platform
     /// </summary>
+    // ReSharper disable once InconsistentNaming
     uMod
 }
