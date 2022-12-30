@@ -60,7 +60,7 @@ public class MergeConfig
     public void Initialize()
     {
         PluginName ??= "MyPluginName";
-        NamespaceOverride = string.Empty;
+        NamespaceOverride ??= string.Empty;
         InputPaths ??= new List<string> { "./" };
         OutputPaths ??= new List<string> {"./build"};
         Defines ??= new List<string> { "DEBUG" };

@@ -23,12 +23,12 @@ public class PluginMergeConfig
 
     public void Initialize()
     {
-        PlatformSettings = string.IsNullOrEmpty(Merge.NamespaceOverride) ? PlatformSettings.GetPlatformSettings(Platform) : PlatformSettings.GetCustomPlatformSettings(Platform, Merge.NamespaceOverride);
-
         Merge ??= new MergeConfig();
         Merge.Initialize();
 
         Compile ??= new CompileConfig();
         Compile.Initialize();
+        
+        PlatformSettings = string.IsNullOrEmpty(Merge.NamespaceOverride) ? PlatformSettings.GetPlatformSettings(Platform) : PlatformSettings.GetCustomPlatformSettings(Platform, Merge.NamespaceOverride);
     }
 }
