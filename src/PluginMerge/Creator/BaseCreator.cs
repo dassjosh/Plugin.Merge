@@ -153,11 +153,19 @@ public class BaseCreator
     {
         Writer.WriteUsings(_files
                            .SelectMany(f => f.UsingStatements)
-                           .Distinct()
-                           .Where(u => !_settings.Merge.IgnoreNameSpaces.Any(u.StartsWith)));
-        
+                           .DistinctBy(u => u.ToString())
+                           .Where(u => !_settings.Merge.IgnoreNameSpaces.Any(u.Name.ToString().StartsWith))
+                           .Select(u => u.ToString()));
+
+        Writer.WriteUsings(_files
+                           .SelectMany(f => f.UsingStatics)
+                           .DistinctBy(u => u.ToString())
+                           .Where(u => !_settings.Merge.IgnoreNameSpaces.Any(u.Name.ToString().StartsWith))
+                           .Select(u => u.ToString()));
+
         Writer.WriteUsings(_files
                            .SelectMany(f => f.UsingAliases)
+                           .Select(u => u.ToString())
                            .Distinct());
     }
 

@@ -62,12 +62,12 @@ public class CodeWriter
     /// <param name="usings"></param>
     public void WriteUsings(IEnumerable<string> usings)
     {
+        if (!usings.Any())
+            return;
+
         foreach (string @using in usings.OrderBy(u => u))
         {
-            _writer.Append("using ");
-            _writer.Append(@using);
-            _writer.Append(';');
-            _writer.AppendLine();
+            _writer.AppendLine(@using);
         }
 
         WriteLine();

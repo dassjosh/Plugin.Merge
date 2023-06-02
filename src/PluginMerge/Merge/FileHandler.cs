@@ -27,15 +27,20 @@ public class FileHandler
     public PluginData PluginData { get; private set; }
         
     /// <summary>
-    /// Using statements in the code file
+    /// Basic using statements in the code file
     /// </summary>
-    public List<string> UsingStatements { get; } = new();
-    
+    public List<UsingDirectiveSyntax> UsingStatements { get; } = new();
+
     /// <summary>
-    /// Using statements in the code file
+    /// Static using statements in the code file
     /// </summary>
-    public List<string> UsingAliases { get; } = new();
-    
+    public List<UsingDirectiveSyntax> UsingStatics { get; } = new();
+
+    /// <summary>
+    /// Alias using statements in the code file
+    /// </summary>
+    public List<UsingDirectiveSyntax> UsingAliases { get; } = new();
+
     /// <summary>
     /// Using statements in the code file
     /// </summary>
@@ -155,16 +160,19 @@ public class FileHandler
         _logger.LogDebug("Start processing usings file at path: {Path}", RegionName);
         foreach (UsingDirectiveSyntax @using in root.Usings)
         {
-            string name = @using.Name.ToString();
-            if (!name.Equals(settings.Namespace))
+            if (!@using.Name.ToString().Equals(settings.Namespace))
             {
-                if (@using.Alias == null)
+                if (@using.Alias != null)
                 {
-                    UsingStatements.Add(name);
+                    UsingAliases.Add(@using);
+                }
+                else if (@using.StaticKeyword != default)
+                {
+                    UsingStatics.Add(@using);
                 }
                 else
                 {
-                    UsingAliases.Add($"{@using.Alias.ToString()} {name}");
+                    UsingStatements.Add(@using);
                 }
             }
         }
