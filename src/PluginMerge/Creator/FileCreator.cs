@@ -220,11 +220,12 @@ public class FileCreator
             }
         }
 
+        HashSet<string> addedTypes = new();
         foreach (FileType file in _extensionTypes)
         {
             foreach (string type in allTypes)
             {
-                if (file.ContainsType(type))
+                if (file.ContainsType(type) && addedTypes.Add(type))
                 {
                     _writer.WriteIndent();
                     _writer.WriteUsingAlias(type, $"{_settings.Merge.PluginName}.{type}");
