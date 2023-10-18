@@ -7,7 +7,7 @@
         <PackageOutputPath>./bin/nupkg</PackageOutputPath>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <PackageVersion>$(Version)</PackageVersion>
-        <LangVersion>11</LangVersion>
+        <LangVersion>10</LangVersion>
         <Authors>MJSU</Authors>
         <ImplicitUsings>enable</ImplicitUsings>
         <FileVersion>$(Version)</FileVersion>
