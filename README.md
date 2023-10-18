@@ -1,8 +1,8 @@
 ## Plugin Merge
 
 [![NuGet version (MJSU.Plugin.Merge)](https://img.shields.io/nuget/v/MJSU.Plugin.Merge?style=flat-square)](https://www.nuget.org/packages/MJSU.Plugin.Merge/)
-![Main Branch status](https://img.shields.io/github/workflow/status/dassjosh/plugin.merge/build/main?label=main&style=flat-square)
-![Develop Branch status](https://img.shields.io/github/workflow/status/dassjosh/plugin.merge/build/develop?label=develop&style=flat-square)
+![Main Branch status](https://img.shields.io/github/actions/workflow/status/dassjosh/plugin.merge/.github/workflows/pre-release.yml?branch=develop&label=main&style=flat-square)
+![Develop Branch status](https://img.shields.io/github/actions/workflow/status/dassjosh/plugin.merge/.github/workflows/pre-release.yml?branch=develop&label=develop&style=flat-square)
 
 Plugin Merge is a .net 6 CLI tool that allows merging multiple .cs files into a single Oxide / uMod plugin file.
 
