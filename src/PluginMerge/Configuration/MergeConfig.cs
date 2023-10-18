@@ -8,15 +8,15 @@ public class MergeConfig
     [JsonPropertyName("Plugin Name")]
     [YamlMember(Alias = "Plugin Name", Description = "Outputted plugin name")]
     public string PluginName { get; set; }
-        
-    [JsonPropertyName("Plugin Base Class")]
-    [YamlMember(Alias = "Plugin Base Class", Description = "Outputted plugin base class")]
-    public string BaseClass { get; set; }
-    
+
     [JsonConverter(typeof(JsonStringEnumConverter))]
     [JsonPropertyName("Creator Mode")]
     [YamlMember(Alias = "Creator Mode", Description = "Which type of file to output (Plugin, Framework, or MergeFramework)")]
     public CreatorMode CreatorMode { get; set; }
+    
+    [JsonPropertyName("Namespace Override")]
+    [YamlMember(Alias = "Namespace Override", Description = "Overrides the default namespace")]
+    public string NamespaceOverride { get; set; }
         
     [JsonPropertyName("Plugin Input Paths")]
     [YamlMember(Alias = "Plugin Input Paths", Description = "Paths to use when reading in source code relative to the merge config")]
@@ -54,10 +54,12 @@ public class MergeConfig
     [YamlIgnore]
     public IEnumerable<string> FinalFiles => OutputPaths.Select(p => Path.Combine(p, $"{PluginName}.cs").ToFullPath());
 
+    private bool ShouldSerializeNamespaceOverride() => CreatorMode == CreatorMode.MergeFramework;
+
     public void Initialize()
     {
         PluginName ??= "MyPluginName";
-        BaseClass ??= "CovalencePlugin";
+        NamespaceOverride ??= string.Empty;
         InputPaths ??= new List<string> { "./" };
         OutputPaths ??= new List<string> {"./build"};
         Defines ??= new List<string> { "DEBUG" };

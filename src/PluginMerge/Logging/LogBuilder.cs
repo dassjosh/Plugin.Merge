@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 
 namespace PluginMerge.Logging;
 
-public static class LogHandler
+public static class LogBuilder
 {
     private static readonly ConcurrentDictionary<Type, ILogger> Loggers = new();
     private static ILoggerFactory _factory;
@@ -23,15 +23,15 @@ public static class LogHandler
         });
     }
 
-    public static ILogger GetLogger(this object entity)
+    public static ILogger<T> GetLogger<T>()
     {
-        if (Loggers.TryGetValue(entity.GetType(), out ILogger logger))
+        if (Loggers.TryGetValue(typeof(T), out ILogger cachedLogger))
         {
-            return logger;
+            return (ILogger<T>)cachedLogger;
         }
 
-        logger = _factory.CreateLogger(entity.GetType());
-        Loggers[entity.GetType()] = logger;
+        ILogger<T> logger = _factory.CreateLogger<T>();
+        Loggers[typeof(T)] = logger;
         return logger;
     }
 }

@@ -4,7 +4,7 @@ using CommandLine.Text;
 namespace PluginMerge.Commands;
 
 [Verb("init", HelpText = "Creates a new merge.json configuration in the current directory")]
-public class InitCommand : BaseCommand
+public class InitCommand : BaseCommand<InitCommand>
 {
     [Option('p', "path", Required = false, HelpText = "Path to create the merge.json configuration file in", Default = "./")]
     public string FilePath { get; set; } = "./";
@@ -14,12 +14,12 @@ public class InitCommand : BaseCommand
 
     public override async Task Execute()
     {
-        await base.Execute();
+        await base.Execute().ConfigureAwait(false);
         
         try
         {
             string path = Path.Combine(FilePath, FileName).ToFullPath();
-            await PluginMergeConfigHandler.Instance.Create(path);
+            await PluginMergeConfigHandler.Instance.Create(path).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

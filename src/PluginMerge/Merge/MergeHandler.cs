@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace PluginMerge.Merge;
 
@@ -13,18 +14,18 @@ public class MergeHandler
     {
         _config = config;
         _merge = config.Merge;
-        _logger = this.GetLogger();
+        _logger = LogBuilder.GetLogger<MergeHandler>();
     }
 
     public async Task Run()
     {
         Stopwatch sw = Stopwatch.StartNew();
-        _logger.LogInformation("Starting Plugin Merge Mode: {Mode}", _merge.CreatorMode);
+        _logger.LogInformation("Starting Plugin Merge Version: {Version} Mode: {Mode}", typeof(Program).Assembly.GetName().Version, _merge.CreatorMode);
         _logger.LogInformation("Input Paths: {Input}", string.Join(", ", _merge.InputPaths.Select(p => p.ToFullPath())));
         
         foreach (string path in _merge.OutputPaths)
         {
-            if (!Directory.Exists(path))
+            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
             {
                 _logger.LogDebug("Output path doesn't exist. Creating output path: {Path}", path);
                 Directory.CreateDirectory(path);
@@ -39,20 +40,26 @@ public class MergeHandler
             _files.Add(new FileHandler(file));
         }
 
-        await Task.WhenAll(_files.Select(f => f.ProcessFile(_config.PlatformSettings)));
+        CSharpParseOptions options = new(_config.PlatformSettings.Lang);
 
-        _files = _files.Where(f => !f.Type.HasFlag(FileSettings.Exclude)).OrderBy(f => f.Order).ToList();
+        await Task.WhenAll(_files.Select(f => f.ProcessFile(_config.PlatformSettings, options))).ConfigureAwait(false);
 
-        BaseCreator creator = BaseCreator.CreateForMode(_config, _files);
+        _files = _files.Where(f => !f.IsExcludedFile()).OrderBy(f => f.Order).ToList();
+
+        FileCreator creator = new(_config, _files);
         if (!creator.Create())
         {
             return;
         }
+
+        string code = creator.ToCode();
+
+        // SyntaxNode parsed = await CSharpSyntaxTree.ParseText(code, options).GetRootAsync().ConfigureAwait(false);
+        // SourceText text = await parsed.NormalizeWhitespace("\n").SyntaxTree.GetTextAsync().ConfigureAwait(false);
+        //
+        // code = text.ToString();
         
-        foreach (string file in finalFiles)
-        {
-            await File.WriteAllTextAsync(file, creator.ToCode());
-        }
+        await Task.WhenAll(finalFiles.Select(f => File.WriteAllTextAsync(f, code))).ConfigureAwait(false);
 
         sw.Stop();
         _logger.LogInformation("Merged completed successfully in {Time}ms. {Mode} {Name} saved to: {File}", sw.ElapsedMilliseconds, _merge.CreatorMode, _merge.PluginName, string.Join(", ", finalFiles));

@@ -1,3 +1,6 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace PluginMerge.Merge;
 
 /// <summary>
@@ -35,6 +38,11 @@ public class PluginData
     /// </summary>
     public string ClassName { get; private set; }
 
+    /// <summary>
+    /// Interfaces On the Plugin
+    /// </summary>
+    public List<string> PluginBaseTypes { get; } = new();
+
     public void SetInfo(string title, string author, string version)
     {
         Title = title;
@@ -51,5 +59,14 @@ public class PluginData
     {
         NameSpace = @namespace;
         ClassName = className;
+    }
+
+    public void SetBaseTypes(SeparatedSyntaxList<BaseTypeSyntax> types)
+    {
+        foreach (BaseTypeSyntax typeSyntax in types)
+        {
+            string type = typeSyntax.ToString();
+            PluginBaseTypes.Add(type);
+        }
     }
 }

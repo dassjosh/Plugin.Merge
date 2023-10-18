@@ -11,11 +11,11 @@ public static class TextWriterExt
         string backgroundColor = background.HasValue ? GetBackgroundColorEscapeCode(background.Value) : null;
         string foregroundColor = foreground.HasValue ? GetForegroundColorEscapeCode(foreground.Value) : null;
         
-        if (backgroundColor != null)
+        if (backgroundColor is not null)
         {
             textWriter.Write(backgroundColor);
         }
-        if (foregroundColor != null)
+        if (foregroundColor is not null)
         {
             textWriter.Write(foregroundColor);
         }

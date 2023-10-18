@@ -53,7 +53,7 @@ public class LogFormatter : ConsoleFormatter, IDisposable
         WriteMessage(textWriter, message);
         
         Exception exception = logEntry.Exception;
-        if (exception != null)
+        if (exception is not null)
         {
             WriteMessage(textWriter, exception.ToString());
         }
@@ -81,6 +81,7 @@ public class LogFormatter : ConsoleFormatter, IDisposable
             LogLevel.Warning => "[warn] ",
             LogLevel.Error => "[fail] ",
             LogLevel.Critical => "[crit] ",
+            LogLevel.None => string.Empty,
             _ => throw new ArgumentOutOfRangeException(nameof(logLevel))
         };
     }

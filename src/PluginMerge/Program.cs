@@ -6,12 +6,9 @@ internal class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        ParserResult<object> result = await Parser.Default.ParseArguments<InitCommand, MergeCommand>(args)
-                                             .WithParsedAsync<ICommand>(c => c.Execute());
-        
-        //Allow all log messages to be written before exiting
-        await Task.Delay(100);
-        
+        ParserResult<object> result = await Parser.Default.ParseArguments<InitCommand, MergeCommand, RenameCommand>(args)
+                                                  .WithParsedAsync<ICommand>(c => c.Execute()).ConfigureAwait(false);
+
         if (result is Parsed<object> parsed)
         {
             return ((ICommand)parsed.Value).CloseCode;

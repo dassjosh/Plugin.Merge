@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using PluginMerge.Scanner;
 
 namespace PluginMerge.Compile;
 
@@ -15,7 +14,7 @@ public class CompileHandler
 
     public CompileHandler(string fileName, PluginMergeConfig config)
     {
-        _logger = this.GetLogger();
+        _logger = LogBuilder.GetLogger<CompileHandler>();
         _fileName = fileName;
         _config = config;
         _compile = config.Compile;
@@ -24,7 +23,7 @@ public class CompileHandler
     public async Task Run()
     {
         Stopwatch sw = Stopwatch.StartNew();
-        _logger.LogInformation("Starting Merged File Compilation");
+        _logger.LogInformation("Starting Merged File Compilation Version: {Version}", typeof(Program).Assembly.GetName().Version);
         
         if (!File.Exists(_fileName))
         {
@@ -32,16 +31,16 @@ public class CompileHandler
             return;
         }
 
-        string code = await File.ReadAllTextAsync(_fileName);
+        string code = await File.ReadAllTextAsync(_fileName).ConfigureAwait(false);
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code, new CSharpParseOptions(_config.PlatformSettings.Lang));
 
         FileScanner scanner = new(_compile.AssemblyPaths, "*.dll", _compile.IgnorePaths, _compile.IgnoreFiles);
 
         List<MetadataReference> references = new();
-        foreach ((string fileName, string _) in scanner.ScanFiles())
+        foreach (ScannedFile file in scanner.ScanFiles())
         {
-            _logger.LogDebug("Added Assembly Reference: {File}", fileName);
-            references.Add(MetadataReference.CreateFromFile(fileName));
+            _logger.LogDebug("Added Assembly Reference: {File}", file.FileName);
+            references.Add(MetadataReference.CreateFromFile(file.FileName));
         }
 
         await using MemoryStream stream = new();

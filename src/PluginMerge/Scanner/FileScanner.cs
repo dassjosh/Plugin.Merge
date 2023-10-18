@@ -2,40 +2,43 @@ namespace PluginMerge.Scanner;
 
 public class FileScanner
 {
-    private readonly List<string> _paths;
-    private readonly List<string> _ignorePaths;
-    private readonly List<string> _ignoreFiles;
+    private readonly List<string> _inputPaths;
+    private readonly string[] _ignorePaths;
+    private readonly string[] _ignoreFiles;
     private readonly string _filter;
-    private readonly List<ScannedFile> _files = new();
     private readonly ILogger _logger;
+
+    private readonly string _objPath = Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar;
+    private readonly string _binPath = Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar;
     
-    public FileScanner(List<string> paths, string filter = "*", IEnumerable<string> ignorePaths = null, IEnumerable<string> ignoreFiles = null)
+    public FileScanner(List<string> inputPaths, string filter = "*", IEnumerable<string> ignorePaths = null, IEnumerable<string> ignoreFiles = null)
     {
-        ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(inputPaths);
         ArgumentNullException.ThrowIfNull(filter);
-        _paths = paths.Select(p => p.ToFullPath()).ToList();
+        _logger = LogBuilder.GetLogger<FileScanner>();
         _filter = filter;
-        _ignorePaths = ignorePaths?.Select(p => p.ToFullPath()).ToList();
-        _ignoreFiles = ignoreFiles?.Select(p => p.ToFullPath()).ToList();
-        _logger = this.GetLogger();
+        _inputPaths = inputPaths;
+        _ignorePaths = ignorePaths?.Select(p => p.ToFullPath()).ToArray() ?? Array.Empty<string>();
+        _ignoreFiles = ignoreFiles?.Select(p => p.ToFullPath()).ToArray() ?? Array.Empty<string>();
     }
 
-    public List<ScannedFile> ScanFiles()
+    public IEnumerable<ScannedFile> ScanFiles()
     {
-        foreach (string path in _paths)
+        foreach (string path in _inputPaths.Select(p => p.ToFullPath()))
         {
-            ScanPath(path, path);
+            foreach (ScannedFile file in ScanPath(path))
+            {
+                yield return file;
+            }
         }
-
-        return _files;
     }
 
-    private void ScanPath(string dir, string root)
+    private IEnumerable<ScannedFile> ScanPath(string dir)
     {
         if (!Directory.Exists(dir))
         {
             _logger.LogError("Directory does not exist: {Dir}", dir);
-            return;
+            yield break;
         }
 
         foreach (string file in Directory.GetFiles(dir, _filter, SearchOption.AllDirectories))
@@ -44,20 +47,18 @@ public class FileScanner
             {
                 continue;
             }
-            
-            _files.Add(new ScannedFile(file, root));
+
+            yield return new ScannedFile(file, dir);
         }
     }
 
     private bool ShouldIgnorePath(string path)
     {
-        return path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}") 
-               || path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}") 
-               || (_ignorePaths?.Any(path.StartsWith) ?? false);
+        return path.Contains(_objPath) || path.Contains(_binPath) || (_inputPaths.Count != 0 && _ignorePaths.Any(path.StartsWith));
     }
 
     private bool ShouldIgnoreFile(string file)
     {
-        return _ignoreFiles != null && _ignoreFiles.Contains(file);
+        return _ignoreFiles.Length != 0 && _ignoreFiles.Contains(file);
     }
 }
