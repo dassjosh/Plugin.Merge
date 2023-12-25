@@ -7,7 +7,7 @@ namespace PluginMerge.Configuration;
 /// </summary>
 public class PlatformSettings
 {
-    private static readonly PlatformSettings Oxide = new("Oxide.Plugins", LanguageVersion.CSharp6);
+    private static readonly PlatformSettings Oxide = new("Oxide.Plugins", LanguageVersion.CSharp11);
     private static readonly PlatformSettings uMod = new("uMod.Plugins", LanguageVersion.CSharp9);
 
     /// <summary>
