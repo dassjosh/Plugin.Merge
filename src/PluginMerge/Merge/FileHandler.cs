@@ -185,7 +185,7 @@ public class FileHandler
     private Task ProcessNamespace(CompilationUnitSyntax root)
     {
         _logger.LogDebug("Start processing namespace file at path: {Path}", RegionName);
-        foreach (NamespaceDeclarationSyntax @namespace in root.ChildNodes().OfType<NamespaceDeclarationSyntax>())
+        foreach (BaseNamespaceDeclarationSyntax @namespace in root.ChildNodes().OfType<BaseNamespaceDeclarationSyntax>())
         {
             foreach (BaseTypeDeclarationSyntax node in @namespace.ChildNodes().OfType<BaseTypeDeclarationSyntax>())
             {
