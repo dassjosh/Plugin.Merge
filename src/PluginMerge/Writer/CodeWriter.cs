@@ -11,6 +11,7 @@ public class CodeWriter
     private readonly PluginData _pluginData;
     private readonly CodeStyleConfig _style;
     private readonly string _pluginNameReplacement;
+    private bool _isInMultilineComment;
 
     /// <summary>
     /// Constructor for the code writer
@@ -198,9 +199,29 @@ public class CodeWriter
     /// <param name="line"></param>
     public void WriteCode(ReadOnlySpan<char> line)
     {
-        if (!_style.KeepComments && line.StartsWith("//"))
+        if (!_style.KeepComments)
         {
-            return;
+            if (line.StartsWith("//"))
+            {
+                return;
+            }
+            
+            if (line.StartsWith("/*"))
+            {
+                _isInMultilineComment = true;
+                return;
+            }
+
+            if (line.EndsWith("*/"))
+            {
+                _isInMultilineComment = false;
+                return;
+            }
+
+            if (_isInMultilineComment)
+            {
+                return;
+            }
         }
 
         bool isRegion = line.StartsWith("#region") || line.StartsWith("#endregion");
