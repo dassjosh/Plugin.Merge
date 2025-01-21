@@ -22,7 +22,7 @@ public class FileCreator
     /// <summary>
     /// Files that contain extension methods
     /// </summary>
-    private readonly List<FileType> _extensionTypes = new();
+    private readonly List<IFileType> _extensionTypes = new();
         
     /// <summary>
     /// Files that contain frameworks
@@ -104,7 +104,7 @@ public class FileCreator
         foreach (FileHandler file in _files)
         {
             bool isPluginType = false;
-            foreach (FileType type in file.FileTypes)
+            foreach (IFileType type in file.FileTypes)
             {
                 if (type.IsExtensionMethods())
                 {
@@ -280,7 +280,7 @@ public class FileCreator
         }
         
         _writer.WriteStartRegion(file.RegionName);
-        foreach (FileType type in file.FileTypes.Where(type => type.HasCode() && !type.IsExtensionMethods()))
+        foreach (IFileType type in file.FileTypes.Where(type => type.HasCode() && !type.IsExtensionMethods()))
         {
             type.Write(_writer);
         }
