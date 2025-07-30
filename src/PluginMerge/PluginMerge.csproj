@@ -29,7 +29,7 @@
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>disable</Nullable>
-        <RollForward>LatestMinor</RollForward>
+        <RollForward>LatestMajor</RollForward>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
