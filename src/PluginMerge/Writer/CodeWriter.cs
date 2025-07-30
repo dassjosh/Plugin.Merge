@@ -25,6 +25,34 @@ public class CodeWriter
         _style = config.CodeStyle;
         _pluginNameReplacement = $"{config.PluginName}.";
     }
+
+    public void WriteRequiredPreprocessorDirectives(List<PreprocessorDirectiveConfig> preprocessorDirectives)
+    {
+        _writer.AppendLine($"#if ({string.Join(" && ", preprocessorDirectives.Select(pd => pd.Directive))})");
+    }
+    
+    public void WritePreprocessorDirectiveError(List<PreprocessorDirectiveConfig> preprocessorDirectives)
+    {
+        for (int index = 0; index < preprocessorDirectives.Count; index++)
+        {
+            PreprocessorDirectiveConfig directive = preprocessorDirectives[index];
+            if (index < preprocessorDirectives.Count - 1)
+            {
+                _writer.AppendLine($"#elif !{directive.Directive}");
+            }
+            else
+            {
+                _writer.AppendLine("#else");
+            }
+
+            _writer.AppendLine($"#error {directive.Message}");
+        }
+    }
+    
+    public void WriteEndPreprocessorDirectives()
+    {
+        _writer.AppendLine("#endif");
+    }
     
     /// <summary>
     /// Writes references to the code

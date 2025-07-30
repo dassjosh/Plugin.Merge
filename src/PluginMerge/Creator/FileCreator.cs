@@ -22,7 +22,7 @@ public class FileCreator
     /// <summary>
     /// Files that contain extension methods
     /// </summary>
-    private readonly List<FileType> _extensionTypes = new();
+    private readonly List<IFileType> _extensionTypes = new();
         
     /// <summary>
     /// Files that contain frameworks
@@ -72,6 +72,7 @@ public class FileCreator
         _writer = new CodeWriter(_plugin.PluginData, _settings.Merge);
         
         WriteReferences();
+        WriteRequiredPreprocessorDirectives();
         WriteDefines();
         WriteUsings();
         WriteNamespace();
@@ -84,6 +85,7 @@ public class FileCreator
         WriteFrameworks();
         EndNamespace();
         WriteExtensionMethods();
+        WriteErrorPreprocessorMessages();
         return true;
     }
 
@@ -104,7 +106,7 @@ public class FileCreator
         foreach (FileHandler file in _files)
         {
             bool isPluginType = false;
-            foreach (FileType type in file.FileTypes)
+            foreach (IFileType type in file.FileTypes)
             {
                 if (type.IsExtensionMethods())
                 {
@@ -131,6 +133,25 @@ public class FileCreator
             {
                 _dataFiles.Add(file);
             }
+        }
+    }
+
+    private void WriteRequiredPreprocessorDirectives()
+    {
+        PreprocessorDirectives settings = _settings.PreprocessorDirectives;
+        if (settings.HasDirectives)
+        {
+            _writer.WriteRequiredPreprocessorDirectives(settings.EnabledDirectives);
+        }
+    }
+
+    private void WriteErrorPreprocessorMessages()
+    {
+        PreprocessorDirectives settings = _settings.PreprocessorDirectives;
+        if (settings.HasDirectives)
+        {
+            _writer.WritePreprocessorDirectiveError(settings.EnabledDirectives);
+            _writer.WriteEndPreprocessorDirectives();
         }
     }
     
@@ -280,7 +301,7 @@ public class FileCreator
         }
         
         _writer.WriteStartRegion(file.RegionName);
-        foreach (FileType type in file.FileTypes.Where(type => type.HasCode() && !type.IsExtensionMethods()))
+        foreach (IFileType type in file.FileTypes.Where(type => type.HasCode() && !type.IsExtensionMethods()))
         {
             type.Write(_writer);
         }
@@ -341,7 +362,7 @@ public class FileCreator
         bool isFramework = IsFrameworkMode || IsMergeFrameworkMode;
         
         WriteExtensionNamespace();
-        foreach (FileType type in _extensionTypes)
+        foreach (IFileType type in _extensionTypes)
         {
             _logger.LogDebug("Writing extension type: {Path}", type.TypeName);
 

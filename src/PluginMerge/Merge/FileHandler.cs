@@ -43,7 +43,7 @@ public class FileHandler
     /// <summary>
     /// Types that have been read from the file
     /// </summary>
-    public List<FileType> FileTypes { get; } = new ();
+    public List<IFileType> FileTypes { get; } = new ();
         
     /// <summary>
     /// The order the file requested to be in
@@ -216,6 +216,12 @@ public class FileHandler
                 {
                     ProcessAttributes(node);
                 }
+            }
+
+            foreach (DelegateDeclarationSyntax @delegate in @namespace.ChildNodes().OfType<DelegateDeclarationSyntax>())
+            {
+                DelegateType data = new(_sourceCode, @delegate, @namespace.Name.ToString());
+                FileTypes.Add(data);
             }
         }
         

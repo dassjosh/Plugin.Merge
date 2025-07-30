@@ -5,10 +5,10 @@ namespace PluginMerge.Merge;
 /// <summary>
 /// Represents an object type
 /// </summary>
-public class FileType
+public class FileType : IFileType
 {
-    public readonly string TypeName;
-    public readonly string TypeNamespace;
+    public string TypeName { get; }
+    public string TypeNamespace { get; }
     private FileSettings _settings;
 
     private readonly string _sourceCode;
