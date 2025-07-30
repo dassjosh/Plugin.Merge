@@ -8,7 +8,6 @@ namespace PluginMerge.Configuration;
 public class PlatformSettings
 {
     private static readonly PlatformSettings Oxide = new("Oxide.Plugins", LanguageVersion.CSharp11);
-    private static readonly PlatformSettings uMod = new("uMod.Plugins", LanguageVersion.CSharp9);
 
     /// <summary>
     /// Represents the lang version the chosen platform supports
@@ -41,7 +40,6 @@ public class PlatformSettings
         return platform switch
         {
             Platform.Oxide => Oxide,
-            Platform.uMod => uMod,
             _ => null
         };
     }
@@ -51,7 +49,6 @@ public class PlatformSettings
         return platform switch
         {
             Platform.Oxide => new PlatformSettings(@namespace, Oxide.Lang),
-            Platform.uMod => new PlatformSettings(@namespace, uMod.Lang),
             _ => null
         };
     }

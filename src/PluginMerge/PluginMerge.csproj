@@ -13,7 +13,7 @@
         <FileVersion>$(Version)</FileVersion>
         <Title>Plugin Merge</Title>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Description>Plugin Merge is a .net 6 CLI tool that allows merging multiple .cs files into a single Oxide / uMod plugin file.</Description>
+        <Description>Plugin Merge is a .net 6 CLI tool that allows merging multiple .cs files into a single Oxide plugin file.</Description>
         <Copyright>Copyright (c) MJSU 2022</Copyright>
         <PackageProjectUrl>https://github.com/dassjosh/Plugin.Merge</PackageProjectUrl>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
