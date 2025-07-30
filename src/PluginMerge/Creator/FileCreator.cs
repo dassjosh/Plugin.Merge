@@ -72,6 +72,7 @@ public class FileCreator
         _writer = new CodeWriter(_plugin.PluginData, _settings.Merge);
         
         WriteReferences();
+        WriteRequiredPreprocessorDirectives();
         WriteDefines();
         WriteUsings();
         WriteNamespace();
@@ -84,6 +85,7 @@ public class FileCreator
         WriteFrameworks();
         EndNamespace();
         WriteExtensionMethods();
+        WriteErrorPreprocessorMessages();
         return true;
     }
 
@@ -131,6 +133,25 @@ public class FileCreator
             {
                 _dataFiles.Add(file);
             }
+        }
+    }
+
+    private void WriteRequiredPreprocessorDirectives()
+    {
+        PreprocessorDirectives settings = _settings.PreprocessorDirectives;
+        if (settings.HasDirectives)
+        {
+            _writer.WriteRequiredPreprocessorDirectives(settings.EnabledDirectives);
+        }
+    }
+
+    private void WriteErrorPreprocessorMessages()
+    {
+        PreprocessorDirectives settings = _settings.PreprocessorDirectives;
+        if (settings.HasDirectives)
+        {
+            _writer.WritePreprocessorDirectiveError(settings.EnabledDirectives);
+            _writer.WriteEndPreprocessorDirectives();
         }
     }
     
@@ -341,7 +362,7 @@ public class FileCreator
         bool isFramework = IsFrameworkMode || IsMergeFrameworkMode;
         
         WriteExtensionNamespace();
-        foreach (FileType type in _extensionTypes)
+        foreach (IFileType type in _extensionTypes)
         {
             _logger.LogDebug("Writing extension type: {Path}", type.TypeName);
 

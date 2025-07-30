@@ -6,12 +6,16 @@ namespace PluginMerge.Configuration;
 public class PluginMergeConfig
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    [YamlMember(Alias = "Platform", Description = "What platform to write the code file for (Oxide, uMod)")]
+    [YamlMember(Alias = "Platform", Description = "What platform to write the code file for (Oxide)")]
     public Platform Platform { get; set; }
     
     [JsonPropertyName("Merge Settings")]
     [YamlMember(Alias = "Merge Settings")]
     public MergeConfig Merge { get; set; }
+    
+    [JsonPropertyName("Preprocessor Directive Settings")]
+    [YamlMember(Alias = "Preprocessor Directive Settings")]
+    public PreprocessorDirectives PreprocessorDirectives { get; set; }
     
     [JsonPropertyName("Compile Settings")]
     [YamlMember(Alias = "Compile Settings")]
@@ -26,6 +30,9 @@ public class PluginMergeConfig
         Merge ??= new MergeConfig();
         Merge.Initialize();
 
+        PreprocessorDirectives ??= new PreprocessorDirectives();
+        PreprocessorDirectives.Initialize();
+        
         Compile ??= new CompileConfig();
         Compile.Initialize();
         
