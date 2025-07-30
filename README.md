@@ -1,28 +1,33 @@
 ## Plugin Merge
 
 [![NuGet version (MJSU.Plugin.Merge)](https://img.shields.io/nuget/v/MJSU.Plugin.Merge?style=flat-square)](https://www.nuget.org/packages/MJSU.Plugin.Merge/)
-![Main Branch status](https://img.shields.io/github/actions/workflow/status/dassjosh/plugin.merge/.github/workflows/pre-release.yml?branch=develop&label=main&style=flat-square)
-![Develop Branch status](https://img.shields.io/github/actions/workflow/status/dassjosh/plugin.merge/.github/workflows/pre-release.yml?branch=develop&label=develop&style=flat-square)
+[![Main Branch status](https://github.com/dassjosh/Plugin.Merge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dassjosh/Plugin.Merge/actions/workflows/ci.yml)
 
-Plugin Merge is a .net 6 CLI tool that allows merging multiple .cs files into a single Oxide / uMod plugin file.
+Plugin Merge is a .net 6+ CLI tool that allows merging multiple .cs files into a single Oxide / uMod plugin file.
 
 ## Examples
 
 ### Plugins
-[Discord Sign Logger](https://github.com/dassjosh/Rust.DiscordSignLogger)
-
-### Frameworks
-[Rust UI Framework](https://github.com/dassjosh/Rust.UIFramework)
+[Discord Sign Logger](https://github.com/dassjosh/Rust.DiscordSignLogger)  
+[Discord Chat](https://github.com/dassjosh/Plugin.DiscordChat)  
+[Discord Core](https://github.com/dassjosh/Plugin.DiscordCore)  
+[Discord Players](https://github.com/dassjosh/Plugin.DiscordPlayers)  
 
 ## Installation
 `dotnet tool install --global MJSU.Plugin.Merge` from the shell/command line.
 
+## Help Command
+
+`plugin.merge --help`
+
 ## Init Command
 
-Create config in current directory:  
-`plugin.merge init -f merge.json -p ./`  
+Create a new merge.yaml config file in the current directory:  
+`plugin.merge init`  
+Create config in the current directory:  
+`plugin.merge init -f merge.yaml -p ./`  
 Create config in specified directory:  
-`plugin.merge init -f merge.json -p C:\Users\USERNAME\Source\Repos\MyFirstMergePlugin`
+`plugin.merge init -f merge.yaml -p C:\Users\USERNAME\Source\Repos\MyFirstMergePlugin`
 
 `-p`, `--path`  (Default: ./) Path to create the merge.json configuration file in  
 `-f`, `--filename` (Default: merge.yml) Name of the outputted configuration file  
@@ -33,15 +38,15 @@ Create config in specified directory:
 ## Merge Command (Default Command)
 
 Merge and Compile:  
-`plugin.merge -c -m -p ./merge.json`  
+`plugin.merge -c -m -p ./merge.yaml`  
 Merge Only:  
-`plugin.merge -m -p C:\Users\USERNAME\Source\Repos\MyFirstMergePlugin\merge.json`  
+`plugin.merge -m -p C:\Users\USERNAME\Source\Repos\MyFirstMergePlugin\merge.yaml`  
 Merge Additional Output Paths:  
-`plugin.merge -c -m -o ./additional/output/path -p ./merge.json`  
+`plugin.merge -c -m -o ./additional/output/path -p ./merge.yaml`  
 Compile Only:  
-`plugin.merge -c -p ./merge.json`
+`plugin.merge -c -p ./merge.yaml`
 
-`-p`, `--path`(Default: ./merge.yml) Path to the merge.json configuration file  
+`-p`, `--path`(Default: ./merge.yml) Path to the merge.yaml configuration file  
 `-m`, `--merge` (Group: Mode) (Default: false) Enables merge mode to merge files into a single plugin/framework file  
 `-c`, `--compile` (Group: Mode) (Default: false) Enables compile mode. Will attempt to compile merged file and display
 any errors if it fails.  
@@ -54,7 +59,7 @@ any errors if it fails.
 
 To get started using plugin merge open a command prompt / terminal and type `plugin.merge init`. 
 This will created the default configuration file named merge.yml in the directory that is currently open.
-Plugin Merge also supports JSON. You can use `plugin.merge init -f merge.json`
+Plugin Merge also supports JSON. You can use `plugin.merge init -f merge.yaml`
 Place your config file a directory near your plugin .cs files.
 Update the config paths to point to the input and output paths you would like to use.
 The configuration supports relative pathing and all paths use the configuration files directory as it's staring point.
@@ -67,13 +72,22 @@ To enable compilation add the `-c` argument while merging Ex: `plugin.merge -m -
 
 ### File Settings
 You can control certain settings about imported .cs files by adding specific comments into the file before the class declaration  
-`//Define:FileOrder=100` - This will control which order the file is added into final output file. Default value is 100  
+`//Define:FileOrder=100` - This will control which order the file is added into the final output file. Default value is 100  
 
 `//Define:ExcludeFile` - This will prevent a file from being processed  
 
 `//Define:Framework` - This defines a file as a framework. Framework files are added at the very bottom in separate partial classes 
 (Note: This should not be added manually and is already added by the Plugin Merge Tool)  
 
+### Run Merge On Compile
+
+Add the following to your csproj file to have the merge tool run after build:
+
+```xml
+<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Exec Command="plugin.merge -m -c -p ./merge.yml" />
+</Target>
+```
 ## Configuration
 
 ### Creator Modes
