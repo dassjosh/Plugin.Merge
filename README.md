@@ -93,8 +93,16 @@ Add the following to your csproj file to have the merge tool run after build:
 ### Creator Modes
 There are 3 types of merge options when using Plugin Merge.  
 `Plugin` - will merge all files into a final Plugin to be used.  
-`Framework` - Will output a framework file that can be copied into another plugin that isn't a merge framework plugin  
-`MergeFramework` - Will output a framework file that can be used with a plugin that is a merge framework plugin  
+`Framework` - Will output a framework file that can be copied into another plugin that isn't a merge framework plugin
+`MergeFramework` - Will output a framework file that can be used with a plugin that is a merge framework plugin
+
+#### Region Path Trim Left/Right
+These keys control how much of the file path appears in the generated region names.
+`Region Path Trim Left` removes directory segments from the start of the relative path (use `-1` to keep only the file name).
+`Region Path Trim Right` removes segments from the end of the path. The defaults are `-1` and `0` respectively.
+For example, for a file located at `src/Plugins/Foo.cs` relative to the current directory:
+* `Region Path Trim Left: 1` results in the region name `Plugins/Foo.cs`.
+* `Region Path Trim Right: 1` results in the region name `src/Plugins`.
 
 ### YAML Configuration File
 ```yaml
@@ -127,6 +135,10 @@ Merge Settings:
   # Namespaces to ignore when processing output file
   Ignore Namespaces:
   - IgnoreThisNameSpace
+  # Segments to trim from the start of region names (-1 keeps only the file name)
+  Region Path Trim Left: -1
+  # Segments to trim from the end of region names
+  Region Path Trim Right: 0
   Code Style:
   # Character to use for code indents
     Indent Character: ' '
@@ -181,6 +193,8 @@ Compile Settings:
     "Ignore Namespaces": [
       "IgnoreThisNameSpace"
     ],
+    "Region Path Trim Left": -1,
+    "Region Path Trim Right": 0,
     "Code Style": {
       "Indent Character": " ",
       "Indent Char Amount": 4,

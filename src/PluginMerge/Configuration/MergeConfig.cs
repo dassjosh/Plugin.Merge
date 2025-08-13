@@ -45,6 +45,14 @@ public class MergeConfig
     [JsonPropertyName("Ignore Namespaces")]
     [YamlMember(Alias = "Ignore Namespaces", Description = "Namespaces to ignore when processing output file")]
     public List<string> IgnoreNameSpaces { get; set; }
+
+    [JsonPropertyName("Region Path Trim Left")]
+    [YamlMember(Alias = "Region Path Trim Left", Description = "Segments to trim from the start of region names (-1 to keep only the file name)")]
+    public int RegionPathTrimLeft { get; set; } = -1;
+
+    [JsonPropertyName("Region Path Trim Right")]
+    [YamlMember(Alias = "Region Path Trim Right", Description = "Segments to trim from the end of region names")]
+    public int RegionPathTrimRight { get; set; } = 0;
     
     [JsonPropertyName("Code Style")]
     [YamlMember(Alias = "Code Style")]
@@ -69,5 +77,15 @@ public class MergeConfig
         IgnoreNameSpaces ??= new List<string> {"IgnoreThisNameSpace"};
         CodeStyle ??= new CodeStyleConfig();
         CodeStyle.Initialize();
+
+        if (RegionPathTrimLeft < -1)
+        {
+            RegionPathTrimLeft = -1;
+        }
+
+        if (RegionPathTrimRight < -1)
+        {
+            RegionPathTrimRight = 0;
+        }
     }
 }
