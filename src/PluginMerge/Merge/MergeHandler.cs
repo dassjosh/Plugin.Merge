@@ -35,7 +35,7 @@ public class MergeHandler
             if (Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase))
             {
                 string fileName = Path.GetFileName(path);
-                if (string.IsNullOrWhiteSpace(_merge.PluginName) || _merge.PluginName == "MyPluginName")
+                if (string.IsNullOrWhiteSpace(_merge.PluginName))
                 {
                     _merge.PluginName = Path.GetFileNameWithoutExtension(fileName);
                 }
@@ -51,11 +51,7 @@ public class MergeHandler
             }
         }
 
-        List<string> finalFiles = _merge.OutputPaths
-            .Select(p => Path.Combine(p, $"{_merge.PluginName}.cs").ToFullPath())
-            .ToList();
-
-        FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles.Concat(finalFiles));
+        FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles);
         foreach (ScannedFile file in scanner.ScanFiles())
         {
             _files.Add(new FileHandler(file, _config.RegionPathTrimLeft, _config.RegionPathTrimRight));
@@ -66,6 +62,21 @@ public class MergeHandler
         await Task.WhenAll(_files.Select(f => f.ProcessFile(_config.PlatformSettings, options))).ConfigureAwait(false);
 
         _files = _files.Where(f => !f.IsExcludedFile()).OrderBy(f => f.Order).ToList();
+
+        if (string.IsNullOrWhiteSpace(_merge.PluginName))
+        {
+            FileHandler? pluginFile = _files.FirstOrDefault(f => f.PluginData is { } data &&
+                                                                 !string.IsNullOrWhiteSpace(data.Title) &&
+                                                                 !string.IsNullOrWhiteSpace(data.Description));
+
+            if (pluginFile is not null)
+            {
+                _merge.PluginName = pluginFile.PluginData.ClassName;
+            }
+        }
+
+        List<string> finalFiles = _merge.FinalFiles.ToList();
+        _files = _files.Where(f => !finalFiles.Contains(f.FilePath)).ToList();
 
         FileCreator creator = new(_config, _files);
         if (!creator.Create())
@@ -79,7 +90,7 @@ public class MergeHandler
         // SourceText text = await parsed.NormalizeWhitespace("\n").SyntaxTree.GetTextAsync().ConfigureAwait(false);
         //
         // code = text.ToString();
-        
+
         await Task.WhenAll(finalFiles.Select(f => File.WriteAllTextAsync(f, code))).ConfigureAwait(false);
 
         sw.Stop();
