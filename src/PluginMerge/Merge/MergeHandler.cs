@@ -37,7 +37,7 @@ public class MergeHandler
         FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles.Concat(finalFiles));
         foreach (ScannedFile file in scanner.ScanFiles())
         {
-            _files.Add(new FileHandler(file));
+            _files.Add(new FileHandler(file, _config.RegionPathTrimLeft, _config.RegionPathTrimRight));
         }
 
         CSharpParseOptions options = new(_config.PlatformSettings.Lang);
