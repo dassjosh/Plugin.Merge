@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
+using System.IO;
 
 namespace PluginMerge.Merge;
 
@@ -22,18 +23,38 @@ public class MergeHandler
         Stopwatch sw = Stopwatch.StartNew();
         _logger.LogInformation("Starting Plugin Merge Version: {Version} Mode: {Mode}", typeof(Program).Assembly.GetName().Version, _merge.CreatorMode);
         _logger.LogInformation("Input Paths: {Input}", string.Join(", ", _merge.InputPaths.Select(p => p.ToFullPath())));
-        
-        foreach (string path in _merge.OutputPaths)
+
+        for (int i = 0; i < _merge.OutputPaths.Count; i++)
         {
-            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
+            string path = _merge.OutputPaths[i];
+            if (string.IsNullOrEmpty(path))
+            {
+                continue;
+            }
+
+            if (Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+            {
+                string fileName = Path.GetFileName(path);
+                if (string.IsNullOrWhiteSpace(_merge.PluginName) || _merge.PluginName == "MyPluginName")
+                {
+                    _merge.PluginName = Path.GetFileNameWithoutExtension(fileName);
+                }
+
+                path = Path.GetDirectoryName(path) ?? string.Empty;
+                _merge.OutputPaths[i] = path;
+            }
+
+            if (!Directory.Exists(path))
             {
                 _logger.LogDebug("Output path doesn't exist. Creating output path: {Path}", path);
                 Directory.CreateDirectory(path);
             }
         }
-        
-        List<string> finalFiles = _merge.FinalFiles.ToList();
-        
+
+        List<string> finalFiles = _merge.OutputPaths
+            .Select(p => Path.Combine(p, $"{_merge.PluginName}.cs").ToFullPath())
+            .ToList();
+
         FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles.Concat(finalFiles));
         foreach (ScannedFile file in scanner.ScanFiles())
         {
