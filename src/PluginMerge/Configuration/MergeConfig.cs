@@ -60,13 +60,23 @@ public class MergeConfig
     
     [JsonIgnore]
     [YamlIgnore]
-    public IEnumerable<string> FinalFiles => OutputPaths.Select(p => Path.Combine(p, $"{PluginName}.cs").ToFullPath());
+    public IEnumerable<string> FinalFiles
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(PluginName))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return OutputPaths.Select(p => Path.Combine(p, $"{PluginName}.cs").ToFullPath());
+        }
+    }
 
     private bool ShouldSerializeNamespaceOverride() => CreatorMode == CreatorMode.MergeFramework;
 
     public void Initialize()
     {
-        PluginName ??= "MyPluginName";
         NamespaceOverride ??= string.Empty;
         InputPaths ??= new List<string> { "./" };
         OutputPaths ??= new List<string> {"./build"};
