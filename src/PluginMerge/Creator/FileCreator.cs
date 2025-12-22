@@ -70,7 +70,8 @@ public class FileCreator
         FilterFiles(_plugin.PluginData);
         
         _writer = new CodeWriter(_plugin.PluginData, _settings.Merge);
-        
+
+        WriteRequires();
         WriteReferences();
         WriteRequiredPreprocessorDirectives();
         WriteDefines();
@@ -156,11 +157,19 @@ public class FileCreator
     }
     
     /// <summary>
-    /// writes usings to the code writer
+    /// writes oxide //References: to the code writer
     /// </summary>
     private void WriteReferences()
     {
-        _writer.WriteReferences(_settings.Merge.References);
+        _writer.WriteReferences(_files.SelectMany(f => f.References).Concat(_settings.Merge.References).Distinct());
+    }
+    
+    /// <summary>
+    /// writes oxide //Requires: to the code writer
+    /// </summary>
+    private void WriteRequires()
+    {
+        _writer.WriteRequires(_files.SelectMany(f => f.Requires).Concat(_settings.Merge.Requires).Distinct());
     }
     
     /// <summary>
@@ -185,14 +194,22 @@ public class FileCreator
                                                              .Select(f => f.TypeNamespace))
                                            .ToList();
         
-        _writer.WriteUsings(_files
-                           .SelectMany(f => f.UsingStatements)
-                           .Distinct()
-                           .Where(u => !_settings.Merge.IgnoreNameSpaces.Any(u.StartsWith) && !extensionNameSpaces.Contains(u)));
+        var uniqueUsings = _files
+            .SelectMany(f => f.UsingStatements.Select(u => new
+            {
+                File = f,
+                Using = u,
+                UsingText = u.ToString(),
+                UsingName = u.Name.ToString()
+            }))
+            .DistinctBy(u => u.UsingText)
+            .Where(u => !_settings.Merge.IgnoreNameSpaces.Any(u.UsingName.StartsWith) && !extensionNameSpaces.Contains(u.UsingText))
+            .OrderBy(u => u.UsingText)
+            .ToArray();
         
-        _writer.WriteUsings(_files
-                           .SelectMany(f => f.UsingAliases)
-                           .Distinct());
+        _writer.WriteUsings(uniqueUsings.Where(u => u.Using.Alias == null && u.Using.StaticKeyword == default).Select(u => u.UsingText));
+        _writer.WriteUsings(uniqueUsings.Where(u => u.Using.StaticKeyword != default).Select(u => u.UsingText));
+        _writer.WriteUsings(uniqueUsings.Where(u => u.Using.Alias is not null).Select(u => u.UsingText));
 
         if (_extensionTypes.Count != 0)
         {

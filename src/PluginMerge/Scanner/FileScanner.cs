@@ -24,13 +24,7 @@ public class FileScanner
 
     public IEnumerable<ScannedFile> ScanFiles()
     {
-        foreach (string path in _inputPaths.Select(p => p.ToFullPath()))
-        {
-            foreach (ScannedFile file in ScanPath(path))
-            {
-                yield return file;
-            }
-        }
+        return _inputPaths.Select(p => p.ToFullPath()).SelectMany(ScanPath);
     }
 
     private IEnumerable<ScannedFile> ScanPath(string dir)
