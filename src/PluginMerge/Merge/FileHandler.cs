@@ -97,7 +97,7 @@ public class FileHandler
             return;
         }
 
-        await Task.WhenAll(ProcessUsings(settings, root), ProcessNamespace(root)).ConfigureAwait(false);
+        await Task.WhenAll(ProcessUsings(settings, root), ProcessNamespace(settings, root)).ConfigureAwait(false);
     }
 
     private Task ProcessComments(CompilationUnitSyntax root)
@@ -173,7 +173,13 @@ public class FileHandler
     private Task ProcessUsings(PlatformSettings settings, CompilationUnitSyntax root)
     {
         _logger.LogDebug("Start processing usings file at path: {Path}", RegionName);
-        foreach (UsingDirectiveSyntax @using in root.Usings)
+        AddUsings(settings, root.Usings);
+        return Task.CompletedTask;
+    }
+    
+    private void AddUsings(PlatformSettings settings, SyntaxList<UsingDirectiveSyntax> usings)
+    {
+        foreach (UsingDirectiveSyntax @using in usings)
         {
             string name = @using.Name.ToString();
             if (!name.Equals(settings.Namespace))
@@ -181,15 +187,15 @@ public class FileHandler
                 UsingStatements.Add(@using);
             }
         }
-        
-        return Task.CompletedTask;
     }
-        
-    private Task ProcessNamespace(CompilationUnitSyntax root)
+
+    private Task ProcessNamespace(PlatformSettings settings, CompilationUnitSyntax root)
     {
         _logger.LogDebug("Start processing namespace file at path: {Path}", RegionName);
         foreach (BaseNamespaceDeclarationSyntax @namespace in root.ChildNodes().OfType<BaseNamespaceDeclarationSyntax>())
         {
+            AddUsings(settings, @namespace.Usings);
+            
             foreach (BaseTypeDeclarationSyntax node in @namespace.ChildNodes().OfType<BaseTypeDeclarationSyntax>())
             {
                 FileSettings typeSettings = Settings;
