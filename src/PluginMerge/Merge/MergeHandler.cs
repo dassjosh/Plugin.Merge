@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
+using System.IO;
 
 namespace PluginMerge.Merge;
 
@@ -22,22 +23,38 @@ public class MergeHandler
         Stopwatch sw = Stopwatch.StartNew();
         _logger.LogInformation("Starting Plugin Merge Version: {Version} Mode: {Mode}", typeof(Program).Assembly.GetName().Version, _merge.CreatorMode);
         _logger.LogInformation("Input Paths: {Input}", string.Join(", ", _merge.InputPaths.Select(p => p.ToFullPath())));
-        
-        foreach (string path in _merge.OutputPaths)
+
+        for (int i = 0; i < _merge.OutputPaths.Count; i++)
         {
-            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
+            string path = _merge.OutputPaths[i];
+            if (string.IsNullOrEmpty(path))
+            {
+                continue;
+            }
+
+            if (Path.GetExtension(path).Equals(".cs", StringComparison.OrdinalIgnoreCase))
+            {
+                string fileName = Path.GetFileName(path);
+                if (string.IsNullOrWhiteSpace(_merge.PluginName))
+                {
+                    _merge.PluginName = Path.GetFileNameWithoutExtension(fileName);
+                }
+
+                path = Path.GetDirectoryName(path) ?? string.Empty;
+                _merge.OutputPaths[i] = path;
+            }
+
+            if (!Directory.Exists(path))
             {
                 _logger.LogDebug("Output path doesn't exist. Creating output path: {Path}", path);
                 Directory.CreateDirectory(path);
             }
         }
-        
-        List<string> finalFiles = _merge.FinalFiles.ToList();
-        
-        FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles.Concat(finalFiles));
+
+        FileScanner scanner = new(_merge.InputPaths, "*.cs", _merge.IgnorePaths, _merge.IgnoreFiles);
         foreach (ScannedFile file in scanner.ScanFiles())
         {
-            _files.Add(new FileHandler(file));
+            _files.Add(new FileHandler(file, _config.RegionPathTrimLeft, _config.RegionPathTrimRight));
         }
 
         CSharpParseOptions options = new(_config.PlatformSettings.Lang);
@@ -45,6 +62,21 @@ public class MergeHandler
         await Task.WhenAll(_files.Select(f => f.ProcessFile(_config.PlatformSettings, options))).ConfigureAwait(false);
 
         _files = _files.Where(f => !f.IsExcludedFile()).OrderBy(f => f.Order).ToList();
+
+        if (string.IsNullOrWhiteSpace(_merge.PluginName))
+        {
+            FileHandler? pluginFile = _files.FirstOrDefault(f => f.PluginData is { } data &&
+                                                                 !string.IsNullOrWhiteSpace(data.Title) &&
+                                                                 !string.IsNullOrWhiteSpace(data.Description));
+
+            if (pluginFile is not null)
+            {
+                _merge.PluginName = pluginFile.PluginData.ClassName;
+            }
+        }
+
+        List<string> finalFiles = _merge.FinalFiles.ToList();
+        _files = _files.Where(f => !finalFiles.Contains(f.FilePath)).ToList();
 
         FileCreator creator = new(_config, _files);
         if (!creator.Create())
@@ -58,7 +90,7 @@ public class MergeHandler
         // SourceText text = await parsed.NormalizeWhitespace("\n").SyntaxTree.GetTextAsync().ConfigureAwait(false);
         //
         // code = text.ToString();
-        
+
         await Task.WhenAll(finalFiles.Select(f => File.WriteAllTextAsync(f, code))).ConfigureAwait(false);
 
         sw.Stop();

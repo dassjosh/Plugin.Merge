@@ -68,11 +68,29 @@ public class FileHandler
     /// Sets the file path
     /// </summary>
     /// <param name="file"></param>
-    public FileHandler(ScannedFile file)
+    public FileHandler(ScannedFile file, int trimLeft, int trimRight)
     {
         _logger = LogBuilder.GetLogger<FileHandler>();
         FilePath = file.FileName;
-        RegionName = FilePath.Replace(file.InputPath, "").TrimStart(Path.DirectorySeparatorChar);
+
+        string relative = Path.GetRelativePath(Directory.GetCurrentDirectory(), FilePath);
+        List<string> parts = relative.Split(Path.DirectorySeparatorChar).ToList();
+
+        if (trimLeft == -1)
+        {
+            parts = parts.TakeLast(1).ToList();
+        }
+        else if (trimLeft > 0)
+        {
+            parts = parts.Skip(Math.Min(trimLeft, parts.Count - 1)).ToList();
+        }
+
+        if (trimRight > 0)
+        {
+            parts = parts.Take(Math.Max(parts.Count - trimRight, 1)).ToList();
+        }
+
+        RegionName = string.Join(Path.DirectorySeparatorChar, parts);
     }
 
     /// <summary>

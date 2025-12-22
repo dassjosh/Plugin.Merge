@@ -68,7 +68,8 @@ public class FileCreator
         }
 
         FilterFiles(_plugin.PluginData);
-        
+
+        _settings.Merge.PluginName ??= _plugin.PluginData.ClassName;
         _writer = new CodeWriter(_plugin.PluginData, _settings.Merge);
 
         WriteRequires();

@@ -12,6 +12,14 @@ public class PluginMergeConfig
     [JsonPropertyName("Merge Settings")]
     [YamlMember(Alias = "Merge Settings")]
     public MergeConfig Merge { get; set; }
+
+    [JsonIgnore]
+    [YamlIgnore]
+    public int RegionPathTrimLeft => Merge.RegionPathTrimLeft;
+
+    [JsonIgnore]
+    [YamlIgnore]
+    public int RegionPathTrimRight => Merge.RegionPathTrimRight;
     
     [JsonPropertyName("Preprocessor Directive Settings")]
     [YamlMember(Alias = "Preprocessor Directive Settings")]
