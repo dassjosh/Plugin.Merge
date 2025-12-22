@@ -89,10 +89,10 @@ public class CodeWriter
     public void WriteUsings(IEnumerable<string> usings)
     {
         bool didWrite = false;
-        foreach (string @using in usings.OrderBy(u => u))
+        foreach (string @using in usings)
         {
             didWrite = true;
-            WriteUsing(@using);
+            _writer.AppendLine(@using);
         }
 
         if (didWrite)

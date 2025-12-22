@@ -28,12 +28,7 @@ public class FileHandler
     /// <summary>
     /// Using statements in the code file
     /// </summary>
-    public List<string> UsingStatements { get; } = new();
-    
-    /// <summary>
-    /// Using statements in the code file
-    /// </summary>
-    public List<string> UsingAliases { get; } = new();
+    public List<UsingDirectiveSyntax> UsingStatements { get; } = new();
     
     /// <summary>
     /// Using statements in the code file
@@ -168,14 +163,7 @@ public class FileHandler
             string name = @using.Name.ToString();
             if (!name.Equals(settings.Namespace))
             {
-                if (@using.Alias is null)
-                {
-                    UsingStatements.Add(name);
-                }
-                else
-                {
-                    UsingAliases.Add($"{@using.Alias.ToString()} {name}");
-                }
+                UsingStatements.Add(@using);
             }
         }
         
