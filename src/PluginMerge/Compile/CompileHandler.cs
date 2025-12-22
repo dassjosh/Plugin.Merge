@@ -32,7 +32,8 @@ public class CompileHandler
         }
 
         string code = await File.ReadAllTextAsync(_fileName).ConfigureAwait(false);
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(code, new CSharpParseOptions(_config.PlatformSettings.Lang));
+        CSharpParseOptions parse = new(_config.PlatformSettings.Lang, preprocessorSymbols: _config.PreprocessorDirectives.EnabledDirectives.Select(d => d.Directive));
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(code, parse);
 
         FileScanner scanner = new(_compile.AssemblyPaths, "*.dll", _compile.IgnorePaths, _compile.IgnoreFiles);
 
@@ -44,8 +45,9 @@ public class CompileHandler
         }
 
         await using MemoryStream stream = new();
-        
-        CSharpCompilation compilation = CSharpCompilation.Create("output.dll", new List<SyntaxTree> {tree}, references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        CSharpCompilationOptions options = new(OutputKind.DynamicallyLinkedLibrary);
+        CSharpCompilation compilation = CSharpCompilation.Create("output.dll", new List<SyntaxTree> {tree}, references, options);
         EmitResult results = compilation.Emit(stream);
         foreach (Diagnostic diagnostic in results.Diagnostics.Where(r => r.Severity >= _compile.CompileLogLevel).OrderBy(r => (int)r.Severity))
         {
