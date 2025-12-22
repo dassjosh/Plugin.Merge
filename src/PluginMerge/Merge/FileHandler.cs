@@ -113,12 +113,9 @@ public class FileHandler
                     Settings |= FileSettings.Exclude;
                     return Task.CompletedTask;
                 } 
-                else if (comment.Contains(Constants.Definitions.OrderFile))
+                else if (comment.Contains(Constants.Definitions.OrderFile) && int.TryParse(comment.Replace(Constants.Definitions.OrderFile, string.Empty), out int order))
                 {
-                    if (int.TryParse(comment.Replace(Constants.Definitions.OrderFile, string.Empty), out int order))
-                    {
-                        Order = order;
-                    }
+                    Order = order;
                 }
 
                 ProcessFrameworkComments(comment);
