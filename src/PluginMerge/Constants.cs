@@ -33,6 +33,12 @@ public static class Constants
         public const string OrderFile = "//Define:FileOrder=";
     }
 
+    public static class OxideDefinitions
+    {
+        public const string Reference = "//Reference: ";
+        public const string Requires = "//Requires: ";
+    }
+
     /// <summary>
     /// Regexs for the application
     /// </summary>

@@ -30,6 +30,10 @@ public class MergeConfig
     [JsonPropertyName("Reference Definitions")]
     public List<string> References { get; set; }
     
+    [YamlMember(Alias = "Requires Definitions", Description = "Oxide //Requires: definitions")]
+    [JsonPropertyName("Requires Definitions")]
+    public List<string> Requires { get; set; }
+    
     [JsonPropertyName("Define Definitions")]
     [YamlMember(Alias = "Define Definitions", Description = "#define definitions")]
     public List<string> Defines { get; set; }
@@ -64,6 +68,7 @@ public class MergeConfig
         OutputPaths ??= new List<string> {"./build"};
         Defines ??= new List<string> { "DEBUG" };
         References ??= new List<string>();
+        Requires ??= new List<string>();
         IgnorePaths ??= new List<string>{"./IgnoreThisPath"};
         IgnoreFiles ??= new List<string>{"./IgnoreThisFile.cs"};
         IgnoreNameSpaces ??= new List<string> {"IgnoreThisNameSpace"};

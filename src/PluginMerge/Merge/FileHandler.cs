@@ -31,6 +31,16 @@ public class FileHandler
     public List<UsingDirectiveSyntax> UsingStatements { get; } = new();
     
     /// <summary>
+    /// //References: comments
+    /// </summary>
+    public List<string> References { get; } = new();
+    
+    /// <summary>
+    /// //Requires: comments
+    /// </summary>
+    public List<string> Requires { get; } = new();
+    
+    /// <summary>
     /// Using statements in the code file
     /// </summary>
     public List<string> DefineDirectives { get; } = new();
@@ -98,7 +108,7 @@ public class FileHandler
         {
             if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
             {
-                if (trivia.Token.Parent is not (NamespaceDeclarationSyntax or ClassDeclarationSyntax or AttributeListSyntax))
+                if (trivia.Token.Parent is not (BaseNamespaceDeclarationSyntax or ClassDeclarationSyntax or AttributeListSyntax or UsingDirectiveSyntax))
                 {
                     continue;
                 }
@@ -116,6 +126,14 @@ public class FileHandler
                 else if (comment.Contains(Constants.Definitions.OrderFile) && int.TryParse(comment.Replace(Constants.Definitions.OrderFile, string.Empty), out int order))
                 {
                     Order = order;
+                }
+                else if (comment.StartsWith(Constants.OxideDefinitions.Reference, StringComparison.OrdinalIgnoreCase))
+                {
+                    References.Add(comment[Constants.OxideDefinitions.Reference.Length..]);
+                }
+                else if (comment.StartsWith(Constants.OxideDefinitions.Requires, StringComparison.OrdinalIgnoreCase))
+                {
+                    Requires.Add(comment[Constants.OxideDefinitions.Requires.Length..]);
                 }
 
                 ProcessFrameworkComments(comment);

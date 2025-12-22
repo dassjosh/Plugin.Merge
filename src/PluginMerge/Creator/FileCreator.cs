@@ -70,7 +70,8 @@ public class FileCreator
         FilterFiles(_plugin.PluginData);
         
         _writer = new CodeWriter(_plugin.PluginData, _settings.Merge);
-        
+
+        WriteRequires();
         WriteReferences();
         WriteRequiredPreprocessorDirectives();
         WriteDefines();
@@ -156,11 +157,19 @@ public class FileCreator
     }
     
     /// <summary>
-    /// writes usings to the code writer
+    /// writes oxide //References: to the code writer
     /// </summary>
     private void WriteReferences()
     {
-        _writer.WriteReferences(_settings.Merge.References);
+        _writer.WriteReferences(_files.SelectMany(f => f.References).Concat(_settings.Merge.References).Distinct());
+    }
+    
+    /// <summary>
+    /// writes oxide //Requires: to the code writer
+    /// </summary>
+    private void WriteRequires()
+    {
+        _writer.WriteRequires(_files.SelectMany(f => f.Requires).Concat(_settings.Merge.Requires).Distinct());
     }
     
     /// <summary>

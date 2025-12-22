@@ -62,7 +62,21 @@ public class CodeWriter
     {
         foreach (string define in references.OrderBy(u => u))
         {
-            _writer.Append("//Reference: ");
+            _writer.Append(Constants.OxideDefinitions.Reference);
+            _writer.Append(define);
+            _writer.AppendLine();
+        }
+    }
+    
+    /// <summary>
+    /// Writes requires to the code
+    /// </summary>
+    /// <param name="requires"></param>
+    public void WriteRequires(IEnumerable<string> requires)
+    {
+        foreach (string define in requires.OrderBy(u => u))
+        {
+            _writer.Append(Constants.OxideDefinitions.Requires);
             _writer.Append(define);
             _writer.AppendLine();
         }
