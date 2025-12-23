@@ -70,13 +70,14 @@ public class FileCreator
         FilterFiles(_plugin.PluginData);
         
         _writer = new CodeWriter(_plugin.PluginData, _settings.Merge);
+        bool hasExtensionMethods = _extensionTypes.Count != 0;
 
         WriteRequires();
         WriteReferences();
         WriteRequiredPreprocessorDirectives();
         WriteDefines();
         WriteUsings();
-        WriteNamespace();
+        WriteNamespace(!hasExtensionMethods);
         if (IsMergeFrameworkMode) _writer.WriteFramework();
         StartPluginClass();
         WritePluginFiles();
@@ -84,8 +85,11 @@ public class FileCreator
         EndPluginClass();
         if (IsMergeFrameworkMode) WriteDataFiles();
         WriteFrameworks();
-        EndNamespace();
-        WriteExtensionMethods();
+        if (hasExtensionMethods)
+        {
+            EndNamespace();
+            WriteExtensionMethods();
+        }
         WriteErrorPreprocessorMessages();
         return true;
     }
@@ -220,12 +224,15 @@ public class FileCreator
     /// <summary>
     /// Writes namespace to the code writer
     /// </summary>
-    private void WriteNamespace()
+    private void WriteNamespace(bool fileScoped)
     {
         _writer.WriteComment($"{_settings.Merge.PluginName} created with PluginMerge v({typeof(Program).Assembly.GetName().Version}) by MJSU @ https://github.com/dassjosh/Plugin.Merge");
-        _writer.WriteNamespace(_settings.PlatformSettings.Namespace);
+        _writer.WriteNamespace(_settings.PlatformSettings.Namespace, fileScoped);
         _writer.WriteLine();
-        _writer.WriteStartBracket();
+        if (!fileScoped)
+        {
+            _writer.WriteStartBracket();
+        }
     }
     
     /// <summary>
@@ -234,7 +241,7 @@ public class FileCreator
     private void WriteExtensionNamespace()
     {
         _writer.WriteLine();
-        _writer.WriteNamespace(GetExtensionNamespace());
+        _writer.WriteNamespace(GetExtensionNamespace(), false);
         _writer.WriteLine();
         _writer.WriteStartBracket();
         if (_settings.Merge.CreatorMode != CreatorMode.MergeFramework)
@@ -371,11 +378,6 @@ public class FileCreator
 
     private void WriteExtensionMethods()
     {
-        if (_extensionTypes.Count == 0)
-        {
-            return;
-        }
-
         bool isFramework = IsFrameworkMode || IsMergeFrameworkMode;
         
         WriteExtensionNamespace();

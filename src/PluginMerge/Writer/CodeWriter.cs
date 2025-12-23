@@ -137,10 +137,15 @@ public class CodeWriter
     /// Writes namespace to the code
     /// </summary>
     /// <param name="namespace"></param>
-    public void WriteNamespace(string @namespace)
+    public void WriteNamespace(string @namespace, bool isFileScoped)
     {
         _writer.Append("namespace ");
         _writer.Append(@namespace);
+        if (isFileScoped)
+        {
+            _writer.Append(';');
+            _writer.AppendLine();
+        }
     }
 
     /// <summary>
