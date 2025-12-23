@@ -12,6 +12,7 @@ Plugin Merge is a .net 6+ CLI tool that allows merging multiple .cs files into a
 [Discord Chat](https://github.com/dassjosh/Plugin.DiscordChat)  
 [Discord Core](https://github.com/dassjosh/Plugin.DiscordCore)  
 [Discord Players](https://github.com/dassjosh/Plugin.DiscordPlayers)  
+[Discord Roles](https://github.com/dassjosh/Plugin.DiscordRoles)  
 
 ## Installation
 `dotnet tool install --global MJSU.Plugin.Merge` from the shell/command line.
@@ -64,9 +65,9 @@ Place your config file a directory near your plugin .cs files.
 Update the config paths to point to the input and output paths you would like to use.
 The configuration supports relative pathing and all paths use the configuration files directory as it's staring point.
 
-Once your configuration file is setup it's time to merge the files together.
+Once your configuration file is setup it's time to merge the files.
 You can run the merge by typing `plugin.merge -m -p ./merge.yml`. 
-This will merge all the .cs files together and create a final file in the output paths specified.
+This will merge all the .cs files and create a final file in the output paths specified.
 You can also enable compilation to compile your plugin to check for any issues before loading it onto your server.
 To enable compilation add the `-c` argument while merging Ex: `plugin.merge -m -c -p ./merge.yml`
 
@@ -98,37 +99,39 @@ There are 3 types of merge options when using Plugin Merge.
 
 ### YAML Configuration File
 ```yaml
-# What platform to write the code file for (Oxide, uMod)
+# What platform to write the code file for (Oxide)
 Platform: Oxide
 Merge Settings:
-# Outputted plugin name
+  # Outputted plugin name
   Plugin Name: MyPluginName
-  # Outputted plugin base class
-  Plugin Base Class: CovalencePlugin
   # Which type of file to output (Plugin, Framework, or MergeFramework)
   Creator Mode: Plugin
+  # Overrides the default namespace
+  Namespace Override: ''
   # Paths to use when reading in source code relative to the merge config
   Plugin Input Paths:
-  - ./
+    - ./
   # Paths to use when writing the plugin file relative to the merge config
   Plugin Output Paths:
-  - ./build
+    - ./build
   # Oxide //References: definitions
   Reference Definitions: []
+  # Oxide //Requires: definitions
+  Requires Definitions: []
   # #define definitions
   Define Definitions:
-  - DEBUG
+    - DEBUG
   # Paths to be ignored when searching for source code relative to merge config
   Ignore Paths:
-  - ./IgnoreThisPath
+    - ./IgnoreThisPath
   # Files to be ignored when searching for source code relative to merge config
   Ignore Files:
-  - ./IgnoreThisFile.cs
+    - ./IgnoreThisFile.cs
   # Namespaces to ignore when processing output file
   Ignore Namespaces:
-  - IgnoreThisNameSpace
+    - IgnoreThisNameSpace
   Code Style:
-  # Character to use for code indents
+    # Character to use for code indents
     Indent Character: ' '
     # The amount of characters to use when indenting once
     Indent Char Amount: 4
@@ -140,18 +143,26 @@ Merge Settings:
     Write The Relative File Path In Region: true
     # Adds the code file path in a region
     Keep Code Comments: true
+Preprocessor Directive Settings:
+  # Preprocessor Directives that are required to build the plugin
+  Preprocessor Directives:
+    - # The Directive That Is Required By The Plugin
+      Directive: OXIDE
+      # The Compiler Error Message Show When The Directive Is Missing
+      Error Message: This plugin requires OXIDE
+      # If This Directive Is Enabled
+      Enabled: false
 Compile Settings:
-  AssemblyPaths:
-  - ./Assemblies
+  Assembly Paths:
+    - ./Assemblies
   # Ignores the following paths relative to the merge config
   Ignore Paths:
-  - ./Assemblies/x86
-  - ./Assemblies/x64
+    - ./Assemblies/x86
+    - ./Assemblies/x64
   # Ignores the following files relative to the merge config
   Ignore Files:
-  - ./Assemblies/Newtonsoft.Json.dll
+    - ./Assemblies/Newtonsoft.Json.dll
   Compile Log Level (Hidden, Info, Warning, Error): Error
-
 ```
 
 ### JSON Configuration File
@@ -160,8 +171,8 @@ Compile Settings:
   "Platform": "Oxide",
   "Merge Settings": {
     "Plugin Name": "MyPluginName",
-    "Plugin Base Class": "CovalencePlugin",
     "Creator Mode": "Plugin",
+    "Namespace Override": "",
     "Plugin Input Paths": [
       "./"
     ],
@@ -169,6 +180,7 @@ Compile Settings:
       "./build"
     ],
     "Reference Definitions": [],
+    "Requires Definitions": [],
     "Define Definitions": [
       "DEBUG"
     ],
@@ -187,8 +199,17 @@ Compile Settings:
       "Indent Multiplier": 1,
       "New Line String": "\r\n",
       "Write The Relative File Path In Region": true,
-      "Keep Comments": true
+      "Keep Code Comments": true
     }
+  },
+  "Preprocessor Directive Settings": {
+    "Preprocessor Directives": [
+      {
+        "Directive": "OXIDE",
+        "Error Message": "This plugin requires OXIDE",
+        "Enabled": false
+      }
+    ]
   },
   "Compile Settings": {
     "Assembly Paths": [
