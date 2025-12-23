@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 namespace PluginMerge.Creator;
 
 /// <summary>
@@ -78,6 +80,7 @@ public class FileCreator
         WriteDefines();
         WriteUsings();
         WriteNamespace(!hasExtensionMethods);
+        WriteNamespaceUsings();
         if (IsMergeFrameworkMode) _writer.WriteFramework();
         StartPluginClass();
         WritePluginFiles();
@@ -192,33 +195,39 @@ public class FileCreator
     /// </summary>
     private void WriteUsings()
     {
-        List<string> extensionNameSpaces = _files
-                                           .SelectMany(f => f.FileTypes
+        string[] extensionNameSpaces = _files.SelectMany(f => f.FileTypes
                                                              .Where(f => f.IsExtensionMethods())
                                                              .Select(f => f.TypeNamespace))
-                                           .ToList();
+                                           .ToArray();
         
-        var uniqueUsings = _files
-            .SelectMany(f => f.UsingStatements.Select(u => new
-            {
-                File = f,
-                Using = u,
-                UsingText = u.ToString(),
-                UsingName = u.Name.ToString()
-            }))
+        WriteUsings(_files.SelectMany(f => f.UsingStatements.Select(u => new UsingStatementData(u))).Where(u => !u.IsNamespace), extensionNameSpaces);
+
+        if (_extensionTypes.Count != 0)
+        {
+            _writer.WriteUsing(GetExtensionNamespace());
+            _writer.WriteLine();
+        }
+    }
+    
+    /// <summary>
+    /// writes usings to the code writer
+    /// </summary>
+    private void WriteNamespaceUsings()
+    {
+        WriteUsings(_files.SelectMany(f => f.UsingStatements.Select(u => new UsingStatementData(u))).Where(u => u.IsNamespace), []);
+    }
+
+    private void WriteUsings(IEnumerable<UsingStatementData> usings, string[] extensionNameSpaces)
+    {
+        UsingStatementData[] uniqueUsings = usings
             .DistinctBy(u => u.UsingText)
             .Where(u => !_settings.Merge.IgnoreNameSpaces.Any(u.UsingName.StartsWith) && !extensionNameSpaces.Contains(u.UsingText))
             .OrderBy(u => u.UsingText)
             .ToArray();
         
-        _writer.WriteUsings(uniqueUsings.Where(u => u.Using.Alias == null && u.Using.StaticKeyword == default).Select(u => u.UsingText));
-        _writer.WriteUsings(uniqueUsings.Where(u => u.Using.StaticKeyword != default).Select(u => u.UsingText));
-        _writer.WriteUsings(uniqueUsings.Where(u => u.Using.Alias is not null).Select(u => u.UsingText));
-
-        if (_extensionTypes.Count != 0)
-        {
-            _writer.WriteUsing(GetExtensionNamespace());
-        }
+        _writer.WriteUsings(uniqueUsings.Where(u => u.IsDefault).Select(u => u.UsingText));
+        _writer.WriteUsings(uniqueUsings.Where(u => u.IsStatic).Select(u => u.UsingText));
+        _writer.WriteUsings(uniqueUsings.Where(u => u.IsAlias).Select(u => u.UsingText));
     }
 
     /// <summary>
@@ -399,5 +408,45 @@ public class FileCreator
     private string GetExtensionNamespace()
     {
         return $"{_settings.PlatformSettings.Namespace}.{_settings.Merge.PluginName}Extensions";
+    }
+    
+    
+    private sealed class UsingStatementData
+    {
+        public readonly string UsingText;
+        public readonly string UsingName;
+        private readonly UsingType _type;
+
+        public bool IsDefault => !IsStatic && !IsAlias;
+        public bool IsStatic => _type.HasFlag(UsingType.Static);
+        public bool IsAlias => _type.HasFlag(UsingType.Alias);
+        public bool IsNamespace => _type.HasFlag(UsingType.Namespace);
+        
+        public UsingStatementData(UsingDirectiveSyntax @using)
+        {
+            UsingText = @using.ToString();
+            UsingName = @using.Name.ToString();
+            if (@using.StaticKeyword != default)
+            {
+                _type |= UsingType.Static;
+            }
+            if (@using.Alias is not null)
+            {
+                _type |= UsingType.Alias;
+            }
+            if(@using.Parent is BaseNamespaceDeclarationSyntax)
+            {
+                _type |= UsingType.Namespace;
+            }
+        }
+    }
+
+    [Flags]
+    private enum UsingType
+    {
+        Default = 0,
+        Static = 1 << 0,
+        Alias = 1 << 1,
+        Namespace = 1 << 2
     }
 }

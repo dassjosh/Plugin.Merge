@@ -106,6 +106,7 @@ public class CodeWriter
         foreach (string @using in usings)
         {
             didWrite = true;
+            WriteIndent();
             _writer.AppendLine(@using);
         }
 
