@@ -199,13 +199,16 @@ public class FileHandler
             foreach (BaseTypeDeclarationSyntax node in @namespace.ChildNodes().OfType<BaseTypeDeclarationSyntax>())
             {
                 FileSettings typeSettings = Settings;
-                foreach (SyntaxTrivia trivia in node.DescendantTrivia())
+                if (node is ClassDeclarationSyntax @class && @class.Modifiers.Any(m => m.IsKind(SyntaxKind.StaticKeyword)))
                 {
-                    if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                    foreach (MethodDeclarationSyntax method in @class.ChildNodes().OfType<MethodDeclarationSyntax>())
                     {
-                        if (trivia.ToString() == Constants.Definitions.ExtensionFile)
+                        if (method.ParameterList.Parameters.Count != 0)
                         {
-                            typeSettings |= FileSettings.Extension;
+                            if (method.ParameterList.Parameters[0].Modifiers.Any(m => m.IsKind(SyntaxKind.ThisKeyword)))
+                            {
+                                typeSettings |= FileSettings.Extension;
+                            }
                         }
                     }
                 }

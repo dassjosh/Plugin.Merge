@@ -378,19 +378,10 @@ public class FileCreator
 
     private void WriteExtensionMethods()
     {
-        bool isFramework = IsFrameworkMode || IsMergeFrameworkMode;
-        
         WriteExtensionNamespace();
         foreach (IFileType type in _extensionTypes)
         {
             _logger.LogDebug("Writing extension type: {Path}", type.TypeName);
-
-            if (isFramework)
-            {
-                _writer.WriteLine();
-                _writer.WriteDefinition(Constants.Definitions.ExtensionFile);
-            }
-                
             type.Write(_writer);
         }
         EndNamespace();

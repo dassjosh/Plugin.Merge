@@ -21,11 +21,6 @@ public static class Constants
         /// Files with this comment will be ignored
         /// </summary>
         public const string ExcludeFile = "//Define:ExcludeFile";        
-        
-        /// <summary>
-        /// Files with this comment will be added as extension methods
-        /// </summary>
-        public const string ExtensionFile = "//Define:ExtensionMethods";
             
         /// <summary>
         /// Files with this comment will be ordered based on the tag
