@@ -425,7 +425,11 @@ public class FileCreator
         public UsingStatementData(UsingDirectiveSyntax @using)
         {
             UsingText = @using.ToString();
-            UsingName = @using.Name.ToString();
+            if (UsingText.StartsWith("global ", StringComparison.Ordinal))
+            {
+                UsingText = UsingText[7..];
+            }
+            UsingName = @using.Name!.ToString();
             if (@using.StaticKeyword != default)
             {
                 _type |= UsingType.Static;
