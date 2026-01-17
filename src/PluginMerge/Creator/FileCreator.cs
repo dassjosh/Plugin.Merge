@@ -83,8 +83,14 @@ public class FileCreator
         WriteNamespaceUsings();
         if (IsMergeFrameworkMode) _writer.WriteFramework();
         StartPluginClass();
-        WritePluginFiles();
-        if (IsPluginMode || IsFrameworkMode) WriteDataFiles();
+        if (IsPluginMode || IsFrameworkMode)
+        {
+            WritePluginAndDataFiles();
+        }
+        else
+        {
+            WritePluginFiles();
+        }
         EndPluginClass();
         if (IsMergeFrameworkMode) WriteDataFiles();
         WriteFrameworks();
@@ -357,6 +363,21 @@ public class FileCreator
         foreach (FileHandler file in _dataFiles)
         {
             _logger.LogDebug("Writing data file: {Path}", file.FilePath);
+            Write(file);
+        }
+    }
+
+    /// <summary>
+    /// Writes the plugin and data files together in the order specified by the Order property
+    /// </summary>
+    private void WritePluginAndDataFiles()
+    {
+        List<FileHandler> orderedFiles = _pluginFiles.Concat(_dataFiles)
+                                                     .OrderBy(f => f.Order)
+                                                     .ToList();
+        foreach (FileHandler file in orderedFiles)
+        {
+            _logger.LogDebug("Writing ordered file: {Path}", file.FilePath);
             Write(file);
         }
     }
