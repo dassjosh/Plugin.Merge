@@ -83,10 +83,16 @@ public class FileCreator
         WriteNamespaceUsings();
         if (IsMergeFrameworkMode) _writer.WriteFramework();
         StartPluginClass();
-        WritePluginFiles();
-        if (IsPluginMode || IsFrameworkMode) WriteDataFiles();
+        if (IsPluginMode || IsFrameworkMode)
+        {
+            WriteFiles(_pluginFiles.Concat(_dataFiles).OrderBy(f => f.Order), "Plugin & Data");
+        }
+        else
+        {
+            WriteFiles(_pluginFiles, "Plugin");
+        }
         EndPluginClass();
-        if (IsMergeFrameworkMode) WriteDataFiles();
+        if (IsMergeFrameworkMode) WriteFiles(_dataFiles, "Data");
         WriteFrameworks();
         if (hasExtensionMethods)
         {
@@ -343,20 +349,11 @@ public class FileCreator
         _writer.WriteLine();
     }
 
-    private void WritePluginFiles()
+    private void WriteFiles(IEnumerable<FileHandler> files, string type)
     {
-        foreach (FileHandler file in _pluginFiles)
+        foreach (FileHandler file in files)
         {
-            _logger.LogDebug("Writing plugin file: {Path}", file.FilePath);
-            Write(file);
-        }
-    }    
-    
-    private void WriteDataFiles()
-    {
-        foreach (FileHandler file in _dataFiles)
-        {
-            _logger.LogDebug("Writing data file: {Path}", file.FilePath);
+            _logger.LogDebug("Writing {Type} file: {Path}", type, file.FilePath);
             Write(file);
         }
     }
