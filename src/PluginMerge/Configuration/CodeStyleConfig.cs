@@ -30,6 +30,10 @@ public class CodeStyleConfig
     [YamlMember(Alias = "Keep Code Comments", Description = "Adds the code file path in a region")]
     public bool KeepComments { get; set; } = true;
 
+    [JsonPropertyName("Write Line Directives")]
+    [YamlMember(Alias = "Write Line Directives", Description = "Adds #line directives that map the merged code back to the original source files and line numbers (for debugging and compiler errors)")]
+    public bool WriteLineDirectives { get; set; }
+
     public void Initialize()
     {
         NewLine ??= Environment.NewLine;

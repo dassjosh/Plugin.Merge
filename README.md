@@ -143,6 +143,8 @@ Merge Settings:
     Write The Relative File Path In Region: true
     # Adds the code file path in a region
     Keep Code Comments: true
+    # Adds #line directives that map the merged code back to the original source files and line numbers (for debugging and compiler errors)
+    Write Line Directives: false
 Preprocessor Directive Settings:
   # Preprocessor Directives that are required to build the plugin
   Preprocessor Directives:
@@ -199,7 +201,8 @@ Compile Settings:
       "Indent Multiplier": 1,
       "New Line String": "\r\n",
       "Write The Relative File Path In Region": true,
-      "Keep Code Comments": true
+      "Keep Code Comments": true,
+      "Write Line Directives": false
     }
   },
   "Preprocessor Directive Settings": {

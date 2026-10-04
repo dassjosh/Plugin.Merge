@@ -20,10 +20,15 @@ public class DelegateType : IFileType
     
     public void Write(CodeWriter writer)
     {
+        // Delegate span never starts with whitespace so the span start is where the code starts
+        writer.StartLineMapping(_type.SyntaxTree, _type.Span.Start);
+        
         foreach (ReadOnlySpan<char> line in GetCode().EnumerateLines())
         {
             writer.WriteCode(line.Trim());
         }
+        
+        writer.EndLineMapping();
     }
 
     private ReadOnlySpan<char> GetCode()

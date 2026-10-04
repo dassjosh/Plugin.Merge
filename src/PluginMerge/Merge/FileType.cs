@@ -36,29 +36,43 @@ public class FileType : IFileType
     /// <param name="writer"></param>
     public void Write(CodeWriter writer)
     {
-        foreach (ReadOnlySpan<char> line in GetCode().EnumerateLines())
+        ReadOnlySpan<char> code = GetCode(out int startIndex);
+        writer.StartLineMapping(_type.SyntaxTree, startIndex);
+        foreach (ReadOnlySpan<char> line in code.EnumerateLines())
         {
             writer.WriteCode(line.Trim());
         }
-    }
         
+        writer.EndLineMapping();
+    }
+
     /// <summary>
     /// Returns the code for the given type
     /// </summary>
     /// <returns></returns>
-    private ReadOnlySpan<char> GetCode()
+    private ReadOnlySpan<char> GetCode() => GetCode(out _);
+
+    /// <summary>
+    /// Returns the code for the given type
+    /// </summary>
+    /// <param name="startIndex">Position in the source code where the returned code starts</param>
+    /// <returns></returns>
+    private ReadOnlySpan<char> GetCode(out int startIndex)
     {
-        int startIndex = _type.Span.Start;
+        startIndex = _type.Span.Start;
         int endIndex = _type.Span.End;
-        
+
         //If plugin type we want code between the open and close braces
         if (IsPlugin())
         {
             startIndex = _type.OpenBraceToken.SpanStart + 1;
             endIndex = _type.CloseBraceToken.SpanStart - 1;
         }
-        
-        return _sourceCode.AsSpan().Slice(startIndex, endIndex - startIndex).Trim();
+
+        ReadOnlySpan<char> code = _sourceCode.AsSpan().Slice(startIndex, endIndex - startIndex);
+        ReadOnlySpan<char> trimmed = code.TrimStart();
+        startIndex += code.Length - trimmed.Length;
+        return trimmed.TrimEnd();
     }
 
     public bool HasCode()

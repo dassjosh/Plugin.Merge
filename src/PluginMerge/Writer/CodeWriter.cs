@@ -1,3 +1,6 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+
 namespace PluginMerge.Writer;
 
 /// <summary>
@@ -12,6 +15,11 @@ public class CodeWriter
     private readonly CodeStyleConfig _style;
     private readonly string _pluginNameReplacement;
     private bool _isInMultilineComment;
+
+    private string _lineMapPath;
+    private int _lineMapLine;
+    private bool _lineMapOutOfSync;
+    private bool _lineMapWritten;
 
     /// <summary>
     /// Constructor for the code writer
@@ -247,36 +255,15 @@ public class CodeWriter
     /// <param name="line"></param>
     public void WriteCode(ReadOnlySpan<char> line)
     {
-        if (!_style.KeepComments)
+        if (ShouldSkipLine(line, out bool isRegion))
         {
-            if (line.StartsWith("//"))
-            {
-                return;
-            }
-            
-            if (line.StartsWith("/*"))
-            {
-                _isInMultilineComment = true;
-                return;
-            }
-
-            if (line.EndsWith("*/"))
-            {
-                _isInMultilineComment = false;
-                return;
-            }
-
-            if (_isInMultilineComment)
-            {
-                return;
-            }
-        }
-
-        bool isRegion = line.StartsWith("#region") || line.StartsWith("#endregion");
-        if (!_style.WriteFileRegion && isRegion)
-        {
+            // Skipped lines break the line mapping so it needs to be written again
+            _lineMapLine++;
+            _lineMapOutOfSync = true;
             return;
         }
+
+        WriteLineDirective();
 
         if (line.Contains('}') && !line.Contains('{'))
         {
@@ -308,10 +295,93 @@ public class CodeWriter
         }
         
         WriteLine();
+        _lineMapLine++;
         if (line.Contains('{') && !line.Contains('}'))
         {
             _indent += _style.IndentMultiplier;
         }
+    }
+
+    private bool ShouldSkipLine(ReadOnlySpan<char> line, out bool isRegion)
+    {
+        isRegion = line.StartsWith("#region") || line.StartsWith("#endregion");
+
+        if (!_style.KeepComments)
+        {
+            if (line.StartsWith("//"))
+            {
+                return true;
+            }
+
+            if (line.StartsWith("/*"))
+            {
+                _isInMultilineComment = true;
+                return true;
+            }
+
+            if (line.EndsWith("*/"))
+            {
+                _isInMultilineComment = false;
+                return true;
+            }
+
+            if (_isInMultilineComment)
+            {
+                return true;
+            }
+        }
+
+        return !_style.WriteFileRegion && isRegion;
+    }
+
+    /// <summary>
+    /// Starts mapping the following code lines back to the original source file using #line directives
+    /// </summary>
+    /// <param name="tree">Syntax tree of the original source file</param>
+    /// <param name="position">Position in the source file of the first code line that will be written</param>
+    public void StartLineMapping(SyntaxTree tree, int position)
+    {
+        if (!_style.WriteLineDirectives || string.IsNullOrEmpty(tree?.FilePath))
+        {
+            return;
+        }
+
+        _lineMapPath = tree.FilePath;
+        _lineMapLine = tree.GetLineSpan(new TextSpan(position, 0)).StartLinePosition.Line + 1;
+        _lineMapOutOfSync = true;
+    }
+
+    /// <summary>
+    /// Stops mapping code lines back to the original source file
+    /// </summary>
+    public void EndLineMapping()
+    {
+        if (_lineMapWritten)
+        {
+            _writer.Append("#line default");
+            WriteLine();
+        }
+
+        _lineMapPath = null;
+        _lineMapOutOfSync = false;
+        _lineMapWritten = false;
+    }
+
+    private void WriteLineDirective()
+    {
+        if (_lineMapPath is null || !_lineMapOutOfSync)
+        {
+            return;
+        }
+
+        _writer.Append("#line ");
+        _writer.Append(_lineMapLine);
+        _writer.Append(" \"");
+        _writer.Append(_lineMapPath);
+        _writer.Append('"');
+        WriteLine();
+        _lineMapOutOfSync = false;
+        _lineMapWritten = true;
     }
 
     /// <summary>

@@ -84,7 +84,7 @@ public class FileHandler
     {
         _logger.LogDebug("Start processing file at path: {Path}", FilePath);
         _sourceCode = await File.ReadAllTextAsync(FilePath).ConfigureAwait(false);
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(_sourceCode, options);
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(_sourceCode, options, FilePath);
 
         if (await tree.GetRootAsync().ConfigureAwait(false) is not CompilationUnitSyntax root)
         {
